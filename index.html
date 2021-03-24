@@ -74,7 +74,7 @@ title: Re[mark]able.net
             </h2>
             <p class="post-grid-desc">{{ post.short_text }}</p>
             <div class="post-grid-desc">
-                {% for tag in site.posts.first.tags %}
+                {% for tag in post.tags %}
                 <span class="badge badge-pill badge-secondary">{{ tag }}</span>
                 {% endfor %}
             </div>
