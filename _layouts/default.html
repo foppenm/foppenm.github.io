@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>{{ page.title }}</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js"
+        integrity="sha512-/DXTXr6nQodMUiq+IUJYCt2PPOUjrHJ9wFrqpJ3XkgPNOZVfMok7cRw6CSxyCQxXn6ozlESsSh1/sMCTF1rL/g=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"
+        integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha512-I5TkutApDjnWuX+smLIPZNhw+LhTd8WrQhdCKsxCFRSvhFx2km8ZfEpNIhF9nq04msHhOkE8BMOBj5QE07yhMA=="
+        crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            /* accent color */
+            --bf-color: #622aff;
+            /* header */
+            --bf-header-title-size: 1.5rem;
+            --bf-header-title-weight: 700;
+            --bf-header-title-color: #000;
+            --bf-header-title-hover: #622aff;
+            /* logo */
+            --bf-header-logo-width: auto;
+            --bf-header-logo-height: 1.5rem;
+            /* post */
+            --bf-post-width: 43.75rem;
+            /* radius */
+            --bf-radius: .5rem;
+        }
+    </style>
+
+    <!-- site css -->
+    <link rel="stylesheet" href="{{'/assets/main.css' | prepend: site.baseurl}}">
+</head>
+
+<body>
+    {%- include header.html -%}
+        {{ content }}
+    {%- include footer.html -%}
+</body>
+</html>

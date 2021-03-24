@@ -1,0 +1,50 @@
+---
+layout: default
+current: post
+---
+
+<main class="post-detail">
+
+    <article class="post">
+        
+        <figure class="post-cover">
+            <img class="post-cover-img" src="{{ page.cover }}"  alt="{{ page.title }}" aria-hidden="true">
+        </figure>
+        
+        <header class="post-header post-container">
+            <h1 class="post-title">{{ page.title }}</h1>
+            <div class="post-meta d-flex align-items-center">
+                <div class="post-meta-item post-meta-author">
+                    <img class="post-meta-author-img d-none d-md-block" width="32" height="32" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250' width='250' height='250'%3E%3Crect width='250' height='250' fill='%23622aff'%3E%3C/rect%3E%3Ctext x='50%' y='53%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='128px' fill='%23ffffff'%3EA%3C/text%3E%3C/svg%3E" alt="admin" aria-hidden="true">
+                    <div class="post-meta-author-details">
+                        <span class="post-meta-label">Written by</span>
+                        <a class="post-meta-author-name" href="#">{{ page.author }}</a>
+                    </div>
+                </div>
+                <div class="post-meta-item post-meta-date">
+                    <span class="post-meta-label">Published</span>
+                    <time class="post-meta-date-time">{{ page.date | date: "%a, %b %d, %Y" }}</time>
+                </div>
+                <div class="post-meta-item post-meta-cats">
+                    <span class="post-meta-label">Tags</span>
+                    <div>
+                        {% for tag in page.tags %}
+                        <span class="badge badge-pill badge-secondary">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button class="post-meta-btn ml-auto" type="button" data-bs-toggle="modal" data-bs-target="#shareModal" aria-label="Share this post">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        <!-- Show page content-->
+        
+        <section class="post-content post-container">
+            {{ content }}
+        </section>
+    </article>
+    
+</main>
