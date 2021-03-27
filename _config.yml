@@ -33,6 +33,12 @@ github_username:  foppenm
 plugins:
   - jekyll-feed
 
+defaults:
+  - scope:
+      path: "content/images"
+    values:
+      image: true
+
 sass:
   load_paths:
       - _sass
