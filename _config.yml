@@ -22,7 +22,7 @@ title: "Re[mark]able.net - All things .NET an Azure related"
 tagline: "A blog dedicated to software development on .NET and Azure"
 email: ""
 description: >- # this means to ignore newlines until "baseurl:"
-  A blog dedicated to software development on .NET and Azure including thing like Blazor, Azure function, Serverless, Sustainable software developement, Security, Frontend and backend.
+  A blog dedicated to software development on .NET and Azure including things like Blazor, Azure function, Serverless, Sustainable software development, Security, Frontend and backend.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://www.re-mark-able.net" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: foppenm
