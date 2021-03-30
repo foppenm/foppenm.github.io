@@ -28,5 +28,8 @@ end
 # Performance-booster for watching directories on Windows
 gem "wdm", "~> 0.1.1", :platforms => [:mingw, :x64_mingw, :mswin]
 
-# Added plugin for sea tags
+# Added plugin for seo tags
 gem 'jekyll-seo-tag'
+
+# Puging for sitemap and robots.txt
+gem 'jekyll-sitemap'

@@ -49,6 +49,7 @@ locale: "en_US"
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
 
 defaults:
   - scope:
