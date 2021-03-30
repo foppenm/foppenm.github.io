@@ -1,0 +1,22 @@
+<!-- Simple Jekyl Search -->
+<script src="https://unpkg.com/simple-jekyll-search@latest/dest/simple-jekyll-search.min.js"></script>
+<script>
+    window.simpleJekyllSearch = new SimpleJekyllSearch({
+      searchInput: document.getElementById('search-input'),
+      resultsContainer: document.getElementById('results-container'),
+      json: '{{ site.url }}/search.json',
+      searchResultTemplate: `
+                    <div class="card my-3">
+                        <div class="card-body">
+                          <h5 class="card-title"><a href="{url}">{title}</a></h5>
+                          <p class="card-text">{date}</p>
+                          <a class="card-link" href="{url}">{url}</a>
+                        </div>
+                    </div>
+      `,
+      noResultsText: 'No results found',
+      limit: 10,
+      fuzzy: false,
+      exclude: ['Welcome']
+    })
+  </script>
