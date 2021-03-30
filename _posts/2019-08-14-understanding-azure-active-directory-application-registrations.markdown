@@ -12,7 +12,7 @@ cover: "/assets/blogs/2019-08-14/cover.jpg"
 
 Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there are registered applications. These applications could all have security permissions and maybe even admin consents to access data across your organization. Do you know which one has which permissions and can access what data and resources? Do you know who has the client secrets that give access to this data? Let's take a look at a non-technical approach to AAD Application Registrations.
 
-# What is an Application Registration
+## What is an Application Registration
 The application registration in your tenant enables you and others to authenticate against your Azure Active Directory. Another option is to authentication through an application secret. A default application registration on its own cannot do much more than validating that the user has valid login credentials. This can be your Active Directory or in case of a multi-tenant application the directory where the user is originated from. It is also possible to let users login with their @outlook.com and @live.com accounts if you configure this.
 
 If you go to your AAD in the [Azure portal](https://portal.azure.com) you can view all the registered applications in your tenant.
@@ -121,7 +121,7 @@ On the other side, we always assume a security breach comes from external source
 * [75% are insider threats](https://securityintelligence.com/news/insider-threats-account-for-nearly-75-percent-of-security-breach-incidents/)
 * [Even partners attack you](https://www.theregister.co.uk/2018/04/10/verizon_dbir/)
 
-# What can happen?
+## What can happen?
 Any of the previous examples can result in a data breach or other malicious actions. Depending on what permissions the application has of course. In my opinion, for *delegated* permissions the chance of malicious action is very low, especially when MFA is enabled. For *application* type permissions this is a whole other world. When someone gets a hold of that secret they can do what the permissions allow them to. 
 
 Possibilities:
@@ -136,7 +136,7 @@ Then there are is also something that is called an illicit consent grant. The at
 
 With all the things that could happen is it wise to check the application registrations in your tenant and act on them. Let's see if we can get an overview of the application registrations in your tenant
 
-# Getting the overview
+## Getting the overview
 Now we know what can happen, how can we get an overview of these applications? The Azure portal shows all the applications but it takes a lot of time to go into every application and check the permissions. This would be a major time sink. Unfortunately for the *application* type permissions, there is no other way at the moment. For *delegated* permissions there is a better way.
 
 What you can do is go the Microsoft Cloud App Security (MCAS) portal an see all the applications in your tenant with a permission level. This way you can focus on the high permissions applications first. 
@@ -146,7 +146,7 @@ What you can do is go the Microsoft Cloud App Security (MCAS) portal an see all 
 In this portal, you can also see if there is a consent given for all the users in this organization
 
 ![orgconsent2](/content/images/2019/08/orgconsent2.png)
-# Making it more secure
+## Making it more secure
 
 Now that you have a basic understanding of Azure AD Application Registrations there are a few things you can do:
 * Initiate an onboarding procedure for adding new Apps that have/need admin consent.

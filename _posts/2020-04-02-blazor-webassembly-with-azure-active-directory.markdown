@@ -1,6 +1,5 @@
 ---
 layout: post
-title: Blazor WebAssembly with Azure Active Directory and Azure Functions
 permalink: /blazor-webassembly-with-azure-active-directory/
 date:   2020-04-02 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "Since the newest Blazor WebAssembly version we have to possibility 
 author: "Mark"
 tags: Blazor Serverless
 cover: "/assets/blogs/2020-04-02/cover.png"
+
+# SEO
+title: Blazor WebAssembly with Azure Active Directory and Azure Functions
+description: "Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers."
+image: "/assets/blogs/2020-04-02/cover.png"
+locale: "en_US"
 ---
 
 Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers. In this post I will focus on authentication with Azure AD. For this I created a [repository](https://github.com/foppenm/multi-tenant-blazor-web-and-backend) on github.
