@@ -17,6 +17,23 @@
         integrity="sha512-I5TkutApDjnWuX+smLIPZNhw+LhTd8WrQhdCKsxCFRSvhFx2km8ZfEpNIhF9nq04msHhOkE8BMOBj5QE07yhMA=="
         crossorigin="anonymous"></script>
 
+    <script>
+        // Script to cope share link
+        function copyInput(elm) {
+            var copyText = document.getElementById(elm);
+            var copyTextStore = copyText.dataset.link;
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            copyText.value = "Copied!";
+            copyText.classList.add("copied");
+            setTimeout(function () {
+                copyText.value = copyTextStore;
+                copyText.classList.remove("copied");
+            }, 500);
+        }
+    </script>
+
     <style>
         :root {
             /* accent color */
