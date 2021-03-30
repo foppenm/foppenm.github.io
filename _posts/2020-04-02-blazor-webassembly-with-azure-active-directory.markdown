@@ -9,7 +9,7 @@ tags: Blazor Serverless
 cover: "/assets/blogs/2020-04-02/cover.png"
 
 # SEO
-title: Blazor WebAssembly with Azure Active Directory and Azure Functions
+title: Blazor WebAssembly with Azure Active Directory and Functions
 description: "Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers."
 image: "/assets/blogs/2020-04-02/cover.png"
 locale: "en_US"

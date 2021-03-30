@@ -9,7 +9,7 @@ tags: ["Azure", "Active Directory"]
 cover: "/assets/blogs/2019-08-14/cover.jpg"
 
 # SEO
-title: Understanding Azure Active Directory Application Registrations
+title: Understanding Azure Active Directory App Registrations
 description: "Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there"
 image: "/assets/blogs/2019-08-14/cover.jpg"
 locale: "en_US"
