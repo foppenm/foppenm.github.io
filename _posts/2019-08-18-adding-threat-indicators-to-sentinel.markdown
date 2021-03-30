@@ -1,6 +1,5 @@
 ---
 layout: post
-title: Sending your Threat Indicators to Azure Sentinel
 permalink: /adding-threat-indicators-to-sentinel/
 date:   2019-08-18 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "How and why should you send your threat indicators to Azure Sentine
 author: "Mark"
 tags: ["Windows Defender for Endpoint", "MDATP", "Sentinel"]
 cover: "/assets/blogs/2019-08-18/cover.jpg"
+
+# SEO
+title: Sending your Threat Indicators to Azure Sentinel
+description: "How and why should you send your threat indicators to Azure Sentinel or add them manually to the Microsoft Defender Advanced Threat Protection (MDATP) solution? What is an indicator? Why should you care? How can you do this? Let's go through this."
+image: "/assets/blogs/2019-08-18/cover.jpg"
+locale: "en_US"
 ---
 
 How and why should you send your threat indicators to Azure Sentinel or add them manually to the Microsoft Defender Advanced Threat Protection (MDATP) solution? What is an indicator, also known as an Indicator of Compromise (IoC)? Why should you care? How can you do this? Let's go through this and add indicators manually and by using a Logic App and the Microsoft Graph Security API.

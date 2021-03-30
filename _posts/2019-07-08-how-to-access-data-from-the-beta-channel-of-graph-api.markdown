@@ -1,6 +1,5 @@
 ---
 layout: post
-title: How to access data from the beta channel of Graph API
 permalink: /how-to-access-data-from-the-beta-channel-of-graph-api/
 date:   2019-07-08 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "How to register a application in Azure Active Directory and use the
 author: "Mark"
 tags: ["Graph API", "Azure"]
 cover: "/content/images/2019/07/stockvault-mesh-a-network-of-relations-between-entities202555.jpg"
+
+# SEO
+title: How to access data from the beta channel of Graph API
+description: "How to register a application in Azure Active Directory and use the beta channel of Graph API in C# without the SDK"
+image: "/content/images/2019/07/stockvault-mesh-a-network-of-relations-between-entities202555.jpg"
+locale: "en_US"
 ---
 
 All the new features of the Microsoft Graph API are first available in the beta version. By using the beta version you can get early access to new features. Microsoft often adds new features as can be seen on their GitHub changelog [here](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/concepts/changelog.md). 

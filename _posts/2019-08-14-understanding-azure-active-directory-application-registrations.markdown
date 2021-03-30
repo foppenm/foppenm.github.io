@@ -1,6 +1,5 @@
 ---
 layout: post
-title: Understanding Azure Active Directory Application Registrations
 permalink: /understanding-azure-active-directory-application-registrations/
 date:   2019-08-14 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "Why should you care about Azure Active Directory (AAD) Application 
 author: "Mark"
 tags: ["Azure", "Active Directory"]
 cover: "/assets/blogs/2019-08-14/cover.jpg"
+
+# SEO
+title: Understanding Azure Active Directory Application Registrations
+description: "Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there"
+image: "/assets/blogs/2019-08-14/cover.jpg"
+locale: "en_US"
 ---
 
 Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there are registered applications. These applications could all have security permissions and maybe even admin consents to access data across your organization. Do you know which one has which permissions and can access what data and resources? Do you know who has the client secrets that give access to this data? Let's take a look at a non-technical approach to AAD Application Registrations.

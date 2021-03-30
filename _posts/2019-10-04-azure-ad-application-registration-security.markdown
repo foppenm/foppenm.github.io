@@ -1,6 +1,5 @@
 ---
 layout: post
-title: Azure AD Application Registration Security with Graph API
 permalink: /azure-ad-application-registration-security/
 date:   2019-10-04 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "Retrieving Azure Active Directory Application Registrations with th
 author: "Mark"
 tags: ["Azure", "Active Directory", "Graph Api"]
 cover: "/assets/blogs/2019-10-04/cover.jpg"
+
+# SEO
+title: Azure AD Application Registration Security with Graph API
+description: "Retrieving Azure Active Directory Application Registrations by using the Microsoft Graph API SDK in beta channel"
+image: "/assets/blogs/2019-10-04/cover.jpg"
+locale: "en_US"
 ---
 
 In many Azure Active Directories, there are registered applications. These applications all have security permissions. Do you know which one has which permissions and can access what data and resources? Do you know who has the secrets that give access to this data? Let's take a look at how we can achieve this.

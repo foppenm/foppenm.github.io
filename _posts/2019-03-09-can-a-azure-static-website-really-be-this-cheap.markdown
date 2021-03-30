@@ -1,6 +1,5 @@
 ---
 layout: post
-title: "Can a Azure Static Website really be this cheap?"
 permalink: /can-a-azure-static-website-really-be-this-cheap/
 date:   2019-03-09 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "Here is why you should consider switching to Azure Static Websites 
 author: "Mark"
 tags: ["Azure Static Website", "Serverless", "Azure"]
 cover: "/content/images/2019/03/logo-2.png"
+
+# SEO
+title: "Can a Azure Static Website really be this cheap?"
+description: "Here is why you should consider switching to Azure Static Websites if your requirements allow it. Let's take a look into what it is and what the costs are"
+image: "/content/images/2019/03/logo-2.png"
+locale: "en_US"
 ---
 
 

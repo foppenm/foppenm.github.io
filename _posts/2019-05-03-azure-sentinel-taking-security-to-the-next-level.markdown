@@ -1,6 +1,5 @@
 ---
 layout: post
-title: "Azure Sentinel: Taking Security To The Next Level"
 permalink: /azure-sentinel-taking-security-to-the-next-level/
 date:   2019-05-03 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "Just learned about Azure Sentinel? What is Azure Sentinel? Is it ta
 author: "Mark"
 tags: ["Azure Sentinel", "Security"]
 cover: "/content/images/2019/07/philipp-katzenberger-iIJrUoeRoCQ-unsplash.jpg"
+
+# SEO
+title: "Azure Sentinel: Taking Security To The Next Level"
+description: "Just learned about Azure Sentinel? What is Azure Sentinel? Is it taking as to the next level of security?"
+image: "/content/images/2019/07/philipp-katzenberger-iIJrUoeRoCQ-unsplash.jpg"
+locale: "en_US"
 ---
 
 Just before the RSA 2019 conference, Microsoft announced a new cloud-native SIEM solution called Azure Sentinel. Sentinel is meant to be the extra pair of eyes to keep your enterprise even more secure than before. Threats are more eminent than ever before since more and more companies go to the cloud. Therefore, attackers have more ways to breach your cloud environment. To counter this you can use Sentinel that enables you to ‘Collect’ data across all your users, applications and resources both on-premise and in the cloud.  By using Sentinel you can ‘Detect’ threats using predefined use cases like any other SIEM or by using the build in AI. ‘Investigate’ and rapidly respond to threats manually or automatically.

@@ -1,6 +1,5 @@
 ---
 layout: post
-title: Using MDATP Streaming API with Misp
 permalink: /using-mdatp-streaming-api-with-misp/
 date:   2019-07-23 15:28:29 +0100
 categories: blogs
@@ -8,6 +7,12 @@ short_text: "Would it not be great if you can access all the data from the new M
 author: "Mark"
 tags: ["MDATP", "Threat Intelligence", "Azure"]
 cover: "/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg"
+
+# SEO
+title: Using MDATP Streaming API with Misp
+description: "Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let's dive into the new MDATP Streaming API"
+image: "/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg"
+locale: "en_US"
 ---
 
 Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection (MDATP)? It would be great if you can just access all that data through an API. But I really do not want to develop another polling mechanism to pull in all the data. That is where the new MDATP Streaming API comes in which just got enabled for public preview. 
