@@ -87,4 +87,4 @@ TLDR: No. This should only be used when you have no other option since the desig
 
 TIP: Pay attention to the 'Retry policy' setting when calling other Logic Apps. It can cause some unwanted retries.
 
-This is all for now, if you have any questions feel free to open a discussion on GitHub [here](https://github.com/foppenm/foppenm.github.io/discussions/4). Thanks for reading!
+This is all for now, if you have any questions feel free to post a message in the discussion on GitHub [here](https://github.com/foppenm/foppenm.github.io/discussions/4). Thanks for reading!
