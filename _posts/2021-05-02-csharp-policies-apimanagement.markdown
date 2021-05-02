@@ -8,8 +8,8 @@ tags: ["Azure", "API", "Policies", "Azure API Management"]
 cover: "/assets/blogs/2021-05-02/cover.png"
 
 # SEO
-title: "Adding C# policies to Azure API Management"
-description: "Programming Azure API management policies in C#"
+title: "Adding C# to policies in Azure API Management"
+description: "Embedding C# to Azure API management policies"
 image: "/assets/blogs/2021-05-02/cover.png"
 locale: "en_US"
 ---
