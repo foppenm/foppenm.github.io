@@ -1,6 +1,6 @@
 ---
 layout: post
-date:   2021-05-02 15:28:29 +0100
+date:   2021-05-09 15:28:29 +0100
 categories: blogs
 short_text: "How to use middleware with Azure Functions on .NET 5 and C#"
 author: "Mark"
