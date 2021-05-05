@@ -23,7 +23,7 @@ Let's take a look at what middleware is, why you should use it, and how we get i
 ## What is middleware
 Middleware is a piece of code that sits before and after the execution of your function in a so-called pipeline. The image below will demonstrate this. The initial request arrives at your function app and then travels through all the middlewares until it reaches your function. It is important to note that the middlewares are executed in the order they are registered.
 
-![pipeline](/assets/blogs/2021-05-09/pipeline.png/)
+![pipeline](/assets/blogs/2021-05-09/pipeline.png)
 
 Each middleware has a "before" and "after" part. Everything before the "next()" is executed before your function is executed. Likewise everything after the "next()" will be executed after the execution of your function.
 
