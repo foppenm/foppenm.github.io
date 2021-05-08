@@ -115,4 +115,4 @@ public async Task<HttpResponseData> MyFunction(
 }
 ```
 
-This is all for now, if you have any questions feel free to post a message in the discussion on GitHub [here](https://github.com/foppenm/foppenm.github.io/discussions/11). Thanks for reading!
+This is all for now, if you have any questions feel free to post a message in the discussion on GitHub [here](https://github.com/foppenm/foppenm.github.io/discussions/10). Thanks for reading!
