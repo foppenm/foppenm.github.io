@@ -1,0 +1,115 @@
+[
+  
+    {
+      "title"    : "How to use middleware with Azure Functions",
+      "category" : "",
+      "tags"     : "Azure, Azure Functions, Middleware, .NET 5",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/05/09/azure-functions-middleware.html",
+      "date"     : "2021-05-09 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "How to add C# to Azure API Management Policies",
+      "category" : "",
+      "tags"     : "Azure, API, Policies, Azure API Management",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/05/02/csharp-policies-apimanagement.html",
+      "date"     : "2021-05-02 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Azure on a budget, forecasting your spending",
+      "category" : "",
+      "tags"     : "Azure, Cost, Budgets",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html",
+      "date"     : "2021-04-25 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Security headers with Azure static websites",
+      "category" : "",
+      "tags"     : "Azure, Static Website, Verizon CDN",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/04/18/security-headers-with-static-sites.html",
+      "date"     : "2021-04-18 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "How to do multi-trigger Azure Logic Apps",
+      "category" : "",
+      "tags"     : "Azure, Logic Apps",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/04/11/logic-app-multi-trigger.html",
+      "date"     : "2021-04-11 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Blazor WebAssembly with Azure Active Directory and Functions",
+      "category" : "",
+      "tags"     : "Blazor, Serverless",
+      "url"      : "https://www.re-mark-able.net/blazor-webassembly-with-azure-active-directory/",
+      "date"     : "2020-04-02 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Azure AD Application Registration Security with Graph API",
+      "category" : "",
+      "tags"     : "Azure, Active Directory, Graph Api",
+      "url"      : "https://www.re-mark-able.net/azure-ad-application-registration-security/",
+      "date"     : "2019-10-04 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Sending your Threat Indicators to Azure Sentinel",
+      "category" : "",
+      "tags"     : "Windows Defender for Endpoint, MDATP, Sentinel",
+      "url"      : "https://www.re-mark-able.net/adding-threat-indicators-to-sentinel/",
+      "date"     : "2019-08-18 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Understanding Azure Active Directory App Registrations",
+      "category" : "",
+      "tags"     : "Azure, Active Directory",
+      "url"      : "https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations/",
+      "date"     : "2019-08-14 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Using MDATP Streaming API with Misp",
+      "category" : "",
+      "tags"     : "MDATP, Threat Intelligence, Azure",
+      "url"      : "https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/",
+      "date"     : "2019-07-23 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "How to access data from the beta channel of Graph API",
+      "category" : "",
+      "tags"     : "Graph API, Azure",
+      "url"      : "https://www.re-mark-able.net/how-to-access-data-from-the-beta-channel-of-graph-api/",
+      "date"     : "2019-07-08 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Azure Sentinel: Taking Security To The Next Level",
+      "category" : "",
+      "tags"     : "Azure Sentinel, Security",
+      "url"      : "https://www.re-mark-able.net/azure-sentinel-taking-security-to-the-next-level/",
+      "date"     : "2019-05-03 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "Can a Azure Static Website really be this cheap?",
+      "category" : "",
+      "tags"     : "Azure Static Website, Serverless, Azure",
+      "url"      : "https://www.re-mark-able.net/can-a-azure-static-website-really-be-this-cheap/",
+      "date"     : "2019-03-09 14:28:29 +0000"
+    } ,
+  
+    {
+      "title"    : "How to develop more secure solutions without the hassle",
+      "category" : "",
+      "tags"     : "Development, Security",
+      "url"      : "https://www.re-mark-able.net/how-to-develop-more-secure-solutions/",
+      "date"     : "2019-01-04 14:28:29 +0000"
+    } 
+  
+]
