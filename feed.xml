@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.2">Jekyll</generator><link href="https://www.re-mark-able.net/feed.xml" rel="self" type="application/atom+xml" /><link href="https://www.re-mark-able.net/" rel="alternate" type="text/html" /><updated>2023-12-15T03:06:30+00:00</updated><id>https://www.re-mark-able.net/feed.xml</id><title type="html">Re[mark]able.net - All things .NET an Azure related</title><subtitle>A blog dedicated to software development on .NET and Azure including things like Blazor, Azure function, Serverless, Sustainable software development, Security, Frontend and backend.</subtitle><author><name>foppenma</name></author><entry><title type="html">How to use middleware with Azure Functions</title><link href="https://www.re-mark-able.net/blogs/2021/05/09/azure-functions-middleware.html" rel="alternate" type="text/html" title="How to use middleware with Azure Functions" /><published>2021-05-09T14:28:29+00:00</published><updated>2021-05-09T14:28:29+00:00</updated><id>https://www.re-mark-able.net/blogs/2021/05/09/azure-functions-middleware</id><content type="html" xml:base="https://www.re-mark-able.net/blogs/2021/05/09/azure-functions-middleware.html"><![CDATA[<p>Lately, I was hearing more and more about middleware with DotNet Core and now again with the release of .NET 5 in combination with Azure functions. As it turns out it is only a few steps to create a middleware for an Azure Function.</p>
+
+<p><strong>If you want to add a middleware to Azure functions, all you have to do is register it in your HostBuilder and create a new class that inherits from IFunctionsWorkerMiddleware.</strong></p>
+
+<p>Let’s take a look at what middleware is, why you should use it, and how we get it up and running in .NET 5.</p>
+
+<h2 id="what-is-middleware">What is middleware</h2>
+<p>Middleware is a piece of code that sits before and after the execution of your function in a so-called pipeline. The image below will demonstrate this. The initial request arrives at your function app and then travels through all the middlewares until it reaches your function. It is important to note that the middlewares are executed in the order they are registered.</p>
+
+<p><img src="/assets/blogs/2021-05-09/pipeline.png" alt="pipeline" /></p>
+
+<p>Each middleware has a “before” and “after” part. Everything before the “next()” is executed before your function is executed. Likewise everything after the “next()” will be executed after the execution of your function.</p>
+
+<p>The use of middleware will allow you to react to incoming requests but also to change the outgoing response before they leave your function app. Let’s take a look at the possibilities and what you can use this for.</p>
+
+<h2 id="why-and-when-to-use-middleware">Why and when to use middleware</h2>
+<p>There are certain situations where you are repeatedly copying the same code. For example, when you build Azure Functions as an external API you don’t want to expose any information about the inner workings in a response. This happens when a exception is thrown and you don’t catch it. Therefore you need to wrap everything in a try-catch and handle the exceptions. Of course, you can make a fancy wrapper for that but you would still be copying the wrapper everywhere. With middleware, you can wrap the “next()” method in a try-catch and handle it in one place.</p>
+
+<p>Other use cases for middleware are:</p>
+<ul>
+  <li>Authentication</li>
+  <li>Performance and tracing monitoring</li>
+  <li>Logging</li>
+  <li>Encrypt/Decrypt incoming requests and outgoing responses</li>
+  <li>Custom Caching</li>
+</ul>
+
+<h2 id="the-considerations-of-using-middleware">The considerations of using middleware</h2>
+<p>When using multiple middlewares it can become very confusing when and in what order everything is executed. That’s why I would recommend, that in the program.cs where your HostBuilder is, you document why one middleware should execute before the other.</p>
+
+<p>The other downside is that the middleware is executed on every incoming call for the entire function app. Every middleware needs to decide on its own if it is applicable for this incoming request. So quick if this then that checks are great to do but if you are going to query a database for information keep an eye on the performance.</p>
+
+<p>The last con is that middleware in combination with Azure Functions does not have the ability to change the outgoing response or terminate the pipeline.. yet… There is an open issue at the time of writing <a href="https://github.com/Azure/azure-functions-dotnet-worker/issues/340">here</a>. As stated in the issue it will come but it will probably take some time. For now, let’s create a middleware for Azure Functions in .NET 5 and see what we can do.</p>
+
+<h2 id="how-to-use-middleware-with-azure-functions">How to use middleware with Azure Functions</h2>
+<p>First, we have to create a middleware class. Let’s call it “ExceptionLoggingMiddleware”. The main responsibility for this middleware is to log every exception that is occurring within the function app as a warning. It does not matter where you create the class as long as it is in your Function App project.</p>
+
+<p>Now that we have a middleware class we still need to make it a middleware. We do this by inheriting from the IFunctionsWorkerMiddleware interface and implementing the interface. Your code should be like this:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ExceptionLoggingMiddleware</span> <span class="p">:</span> <span class="n">IFunctionsWorkerMiddleware</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">FunctionContext</span> <span class="n">context</span><span class="p">,</span> <span class="n">FunctionExecutionDelegate</span> <span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">await</span> <span class="nf">next</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now, let’s give this middleware some code so that it actually does something. We are going to add a try-catch and get a logger instance from the provided context by Azure Functions runtime.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ExceptionLoggingMiddleware</span> <span class="p">:</span> <span class="n">IFunctionsWorkerMiddleware</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">FunctionContext</span> <span class="n">context</span><span class="p">,</span> <span class="n">FunctionExecutionDelegate</span> <span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">try</span>
+        <span class="p">{</span>
+            <span class="c1">// Code before function execution here</span>
+            <span class="k">await</span> <span class="nf">next</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+            <span class="c1">// Code after function execution here</span>
+        <span class="p">}</span>
+        <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">log</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetLogger</span><span class="p">&lt;</span><span class="n">ExceptionLoggingMiddleware</span><span class="p">&gt;();</span>
+            <span class="n">log</span><span class="p">.</span><span class="nf">LogWarning</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This should be enough to log every exception as a warning. If we run the function project you will see that the middleware is not called. This is because we didn’t register it yet in the program.cs where you initialize your host builder. Program.cs is the default startup class but it can be named differently in your project. The best is to search for where “HostBuilder” is used.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Program</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="n">Task</span> <span class="nf">Main</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="kt">var</span> <span class="n">host</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HostBuilder</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">ConfigureFunctionsWorkerDefaults</span><span class="p">(</span>
+                <span class="n">builder</span> <span class="p">=&gt;</span>
+                <span class="p">{</span>
+                    <span class="n">builder</span><span class="p">.</span><span class="n">UseMiddleware</span><span class="p">&lt;</span><span class="n">ExceptionLoggingMiddleware</span><span class="p">&gt;();</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="p">.</span><span class="nf">Build</span><span class="p">();</span>
+
+        <span class="k">return</span> <span class="n">host</span><span class="p">.</span><span class="nf">RunAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>So now when we call a function that has the code provided below you will see that it logs the warning to your console window and if you have Application Insights configured it will be logged to there.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="nf">Function</span><span class="p">(</span><span class="s">"MyFunction"</span><span class="p">)]</span>
+<span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">HttpResponseData</span><span class="p">&gt;</span> <span class="nf">MyFunction</span><span class="p">(</span>
+<span class="p">[</span><span class="nf">HttpTrigger</span><span class="p">(</span><span class="n">AuthorizationLevel</span><span class="p">.</span><span class="n">Anonymous</span><span class="p">,</span> <span class="s">"get"</span><span class="p">,</span> <span class="n">Route</span> <span class="p">=</span> <span class="s">"myfunction"</span><span class="p">)]</span> <span class="n">HttpRequestData</span> <span class="n">req</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Ooops"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is all for now, if you have any questions feel free to post a message in the discussion on GitHub <a href="https://github.com/foppenm/foppenm.github.io/discussions/10">here</a>. Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="Azure Functions" /><category term="Middleware" /><category term=".NET 5" /><summary type="html"><![CDATA[How to use middleware with Azure Functions on .NET 5 and C#]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2021-05-09/cover.png" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2021-05-09/cover.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">How to add C# to Azure API Management Policies</title><link href="https://www.re-mark-able.net/blogs/2021/05/02/csharp-policies-apimanagement.html" rel="alternate" type="text/html" title="How to add C# to Azure API Management Policies" /><published>2021-05-02T14:28:29+00:00</published><updated>2021-05-02T14:28:29+00:00</updated><id>https://www.re-mark-able.net/blogs/2021/05/02/csharp-policies-apimanagement</id><content type="html" xml:base="https://www.re-mark-able.net/blogs/2021/05/02/csharp-policies-apimanagement.html"><![CDATA[<p>Using Azure API management has some great advantages like not having to manage your own proxy to aggregate all your API’s or microservices into one endpoint. If you have used Azure API management before then you know there is an option to edit policies to change the incoming or outgoing requests.</p>
+
+<h2 id="what-are-policies">What are policies?</h2>
+<p>With policies, you have full control over how your API calls travel through your API management to the backend. You can set policies on one specific API call or the entire API. Adding a policy is mainly done in XML but before we go there, here are some examples of what you can do:</p>
+<ul>
+  <li>Access restrictions to block IP addresses, limit call rate and validate JWT tokens</li>
+  <li>Advance policies to mock responses (for testing) and retries</li>
+  <li>Caching policies to store and retrieve data from a cache</li>
+  <li>Transformations for JSON to XML or vice versa</li>
+</ul>
+
+<p>If you want extended information please take a look <a href="https://docs.microsoft.com/en-us/azure/api-management/api-management-policies">here</a>.</p>
+
+<h2 id="adding-a-policy">Adding a policy</h2>
+<p>Now that we know a little about what policies can do, let’s add a new policy to an Azure API management instance. I am going to assume you already have an API created or like me using the default echo API. Go to that API and click on a specific API call. You will see something similar to this:</p>
+
+<p><img src="/assets/blogs/2021-05-02/api.png" alt="Api" /></p>
+
+<p>Now click on &lt;/&gt; in the “Inbound processing” to enter the policy window. Here you can add all the different types of policies like only allowing a certain IP address range like this:</p>
+
+<p><img src="/assets/blogs/2021-05-02/xmlpolicyiprange.png" alt="xmlpolicyiprange" /></p>
+
+<p>This specific call will be limited to only allow a specific range of IP addresses. The same can be done for a rate limit policy which can be used to protect a backend service from receiving too many requests. For other policies, you can also go to the snippet window in the top right corner to select a policy</p>
+
+<p><img src="/assets/blogs/2021-05-02/snippet.png" alt="snippet" /></p>
+
+<h2 id="adding-c-to-a-policy">Adding C# to a policy</h2>
+<p>We now know what policies are and what they can do but what about more advanced scenarios? What if I have an API that is receiving documents with metadata in JSON format and I only want to save the document in blob storage and not the metadata. This is because the metadata is handled by a different backend than the document processing.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"fileName"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"filename.ext"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="s2">"more meta data here"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"doc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"base64string of the document"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The JSON is pretty basic with some metadata properties. We now only want to select the property “doc” which contains the document. This can be done by using C# in the policy and a total overview of the policy is also provided later. First, we need to extract the incoming body from the request and save it to a variable and also save a random filename so that the blob can be saved.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;set-variable</span> <span class="na">name=</span><span class="s">"body"</span> <span class="na">value=</span><span class="s">"@((string)context.Request.Body.As&lt;string&gt;(preserveContent: true))"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;set-variable</span> <span class="na">name=</span><span class="s">"fileGuid"</span> <span class="na">value=</span><span class="s">"@(Guid.NewGuid().ToString())"</span> <span class="nt">/&gt;</span>
+</code></pre></div></div>
+
+<p>As you can see in the value property which begins with ‘@(‘ you can write plain C# after that. If you want multi-line you can use “@{}”. API management provides some default variables like “context” which contains the body of the incoming request. After that, you can access the rest of the body and save it as variables.</p>
+
+<p>Next, we need to start creating a send-request to blob storage and that can be done like below where we also concatenate a string that represents the URL of where the blob will be saved. In that URL, we are again using C#. Also, notice the headers that we are setting here to generate a valid request to an Azure storage account.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;send-request</span> <span class="na">mode=</span><span class="s">"new"</span> <span class="na">timeout=</span><span class="s">"300"</span> <span class="na">response-variable-name=</span><span class="s">"blobdata"</span> <span class="na">ignore-error=</span><span class="s">"false"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;set-url&gt;</span>@("https://myblobstorage.blob.core.windows.net/yourdocscontainer/" + context.Variables.GetValueOrDefault<span class="nt">&lt;string&gt;</span>("fileGuid"))<span class="nt">&lt;/set-url&gt;</span>
+    <span class="nt">&lt;set-method&gt;</span>PUT<span class="nt">&lt;/set-method&gt;</span>
+    <span class="nt">&lt;set-header</span> <span class="na">name=</span><span class="s">"x-ms-version"</span> <span class="na">exists-action=</span><span class="s">"override"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;value&gt;</span>2019-07-07<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/set-header&gt;</span>
+    <span class="nt">&lt;set-header</span> <span class="na">name=</span><span class="s">"x-ms-blob-type"</span> <span class="na">exists-action=</span><span class="s">"override"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;value&gt;</span>BlockBlob<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/set-header&gt;</span>
+    <span class="nt">&lt;set-body&gt;</span>
+        <span class="c">&lt;!-- See below --&gt;</span>
+    <span class="nt">&lt;/set-body&gt;</span>
+    <span class="nt">&lt;authentication-managed-identity</span> <span class="na">resource=</span><span class="s">"https://storage.azure.com"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/send-request&gt;</span>
+</code></pre></div></div>
+
+<p>The last thing we need to do is setting the body of the request to an array of bytes that can be saved to blob storage. Retrieving the “doc” property from the incoming request and converting the base64 string to bytes can be done like this</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;set-body&gt;</span>
+    @{
+        var body = (string)context.Variables.GetValueOrDefault<span class="nt">&lt;string&gt;</span>("body");
+        var jsonObject = JObject.Parse(body);
+        var base64String = (string)jsonObject["doc"] ;
+        var bytes = Convert.FromBase64String(base64String); 
+        return bytes;          
+    }
+<span class="nt">&lt;/set-body&gt;</span>
+</code></pre></div></div>
+
+<p>No this is not the cleanest or shortest code but I wanted to keep it as simple and readable as possible and not putting everything in a single line. Below is the full policy that contains all the parts until now.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;policies&gt;</span>
+    <span class="nt">&lt;inbound&gt;</span>
+        <span class="nt">&lt;set-variable</span> <span class="na">name=</span><span class="s">"body"</span> <span class="na">value=</span><span class="s">"@((string)context.Request.Body.As&lt;string&gt;(preserveContent: true))"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;set-variable</span> <span class="na">name=</span><span class="s">"fileGuid"</span> <span class="na">value=</span><span class="s">"@(Guid.NewGuid().ToString())"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;send-request</span> <span class="na">mode=</span><span class="s">"new"</span> <span class="na">timeout=</span><span class="s">"300"</span> <span class="na">response-variable-name=</span><span class="s">"blobdata"</span> <span class="na">ignore-error=</span><span class="s">"false"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;set-url&gt;</span>@("https://myblobstorage.blob.core.windows.net/yourdocscontainer/" + context.Variables.GetValueOrDefault<span class="nt">&lt;string&gt;</span>("fileGuid"))<span class="nt">&lt;/set-url&gt;</span>
+            <span class="nt">&lt;set-method&gt;</span>PUT<span class="nt">&lt;/set-method&gt;</span>
+            <span class="nt">&lt;set-header</span> <span class="na">name=</span><span class="s">"x-ms-version"</span> <span class="na">exists-action=</span><span class="s">"override"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;value&gt;</span>2019-07-07<span class="nt">&lt;/value&gt;</span>
+            <span class="nt">&lt;/set-header&gt;</span>
+            <span class="nt">&lt;set-header</span> <span class="na">name=</span><span class="s">"x-ms-blob-type"</span> <span class="na">exists-action=</span><span class="s">"override"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;value&gt;</span>BlockBlob<span class="nt">&lt;/value&gt;</span>
+            <span class="nt">&lt;/set-header&gt;</span>
+            <span class="nt">&lt;set-body&gt;</span>
+                @{
+                    var body = (string)context.Variables.GetValueOrDefault<span class="nt">&lt;string&gt;</span>("body");
+                    var jsonObject = JObject.Parse(body);
+                    var base64String = (string)jsonObject["doc"] ;
+                    var bytes = Convert.FromBase64String(base64String); 
+                    return bytes;          
+                }
+            <span class="nt">&lt;/set-body&gt;</span>
+            <span class="nt">&lt;authentication-managed-identity</span> <span class="na">resource=</span><span class="s">"https://storage.azure.com"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;/send-request&gt;</span>
+        <span class="nt">&lt;choose&gt;</span>
+            <span class="c">&lt;!-- Return an error to the caller of the api when storing in blob is failed --&gt;</span>
+            <span class="nt">&lt;when</span> <span class="na">condition=</span><span class="s">"@(((IResponse)context.Variables.GetValueOrDefault&lt;IResponse&gt;("</span><span class="err">blobdata")).StatusCode</span> <span class="err">!=</span> <span class="err">201)"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;return-response&gt;</span>
+                    <span class="nt">&lt;set-status</span> <span class="na">code=</span><span class="s">"400"</span> <span class="na">reason=</span><span class="s">"@(((IResponse)context.Variables.GetValueOrDefault&lt;IResponse&gt;("</span><span class="err">blobdata")).StatusReason)"</span> <span class="nt">/&gt;</span>
+                    <span class="nt">&lt;set-header</span> <span class="na">name=</span><span class="s">"ErrorReason"</span> <span class="na">exists-action=</span><span class="s">"override"</span><span class="nt">&gt;</span>
+                        <span class="nt">&lt;value&gt;</span>@(((IResponse)context.Variables.GetValueOrDefault<span class="nt">&lt;IResponse&gt;</span>("blobdata")).StatusReason)<span class="nt">&lt;/value&gt;</span>
+                    <span class="nt">&lt;/set-header&gt;</span>
+                <span class="nt">&lt;/return-response&gt;</span>
+            <span class="nt">&lt;/when&gt;</span>
+        <span class="nt">&lt;/choose&gt;</span>
+        <span class="c">&lt;!-- Add your backend call here if you only want it to be called on a successful storage call--&gt;</span>
+        <span class="nt">&lt;base</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/inbound&gt;</span>
+    <span class="nt">&lt;backend&gt;</span>
+        <span class="nt">&lt;base</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/backend&gt;</span>
+    <span class="nt">&lt;outbound&gt;</span>
+        <span class="nt">&lt;base</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/outbound&gt;</span>
+    <span class="nt">&lt;on-error&gt;</span>
+        <span class="nt">&lt;base</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/on-error&gt;</span>
+<span class="nt">&lt;/policies&gt;</span>
+</code></pre></div></div>
+
+<p>With this, we completed including C# into Azure API management policies. This is all for now, if you have any questions feel free to post a message in the discussion on GitHub <a href="https://github.com/foppenm/foppenm.github.io/discussions/9">here</a>. Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="API" /><category term="Policies" /><category term="Azure API Management" /><summary type="html"><![CDATA[Embedding C# to Azure API management policies]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2021-05-02/cover.png" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2021-05-02/cover.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Azure on a budget, forecasting your spending</title><link href="https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html" rel="alternate" type="text/html" title="Azure on a budget, forecasting your spending" /><published>2021-04-25T14:28:29+00:00</published><updated>2021-04-25T14:28:29+00:00</updated><id>https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget</id><content type="html" xml:base="https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"><![CDATA[<p>When developing software and deploying it to Microsoft Azure you will most likely encounter some form of cost management. Also questions on: What is this going to cost me or how much is this every month? Let’s look into Azure Cost analysis and Budgets.</p>
+
+<h2 id="calculating-your-cost">Calculating your cost</h2>
+<p>For every Azure resource, there is a pricing calculator, which you can find <a href="https://azure.microsoft.com/en-us/pricing/calculator">here</a>. You can make calculations for the resource types you want. Let take for example the Application Gateway and assume there is a Products API that returns some product information in JSON. I am going to use the Application Gateway to access the API within a VNET. The usage with the current API is 1.000 users which generate 30.000 API calls per month. Let’s put that into the pricing calculator</p>
+
+<p><img src="/assets/blogs/2021-04-25/appgatewaypricing.png" alt="appgatewaypricing" /></p>
+
+<p>Probably not the only one here but I have actually no clue how much Data processing or Outbound data transfer that is because it has never mattered before. Although the API is returning JSON there is some uncertainty. Since the costs are very low per GB I am taking the gamble and setting it up. Let’s see what the costs are after a week of usage.</p>
+
+<h2 id="cost-analysis">Cost analysis</h2>
+<p>For every resource group within Azure, you can get a Cost analysis. This also includes a forecast of the current month. You can find it by going to a resource group and scroll down in the left menu (like in the screenshot below). Here you will have an overview of the current cost (dark green) and the forecasting (light green).</p>
+
+<p><img src="/assets/blogs/2021-04-25/resourcegroupcost.png" alt="resourcegroupcost" /></p>
+
+<p>Now that you know where to find this cost is must state a small fact: This does not work for CSP subscriptions, these costs are hidden at the time of writing. As you can see in the previous image there was already a Budget set on this resource group. The last thing I want to do with my time is to look at the cost of Azure all day.</p>
+
+<h2 id="budgets">Budgets</h2>
+<p>In the same menu on the left, you will find budgets. Budgets lets you set an alert on a resource group or a specific resource within that group. This allows you to react to overspending or even when the forecast is indicating that you will exceed your budget at the end of the month.</p>
+
+<p>By creating a budget you can set your desired budget details like the renewal period and the budget amount. Just as important is the budget scoping. Here you can set filters on what resources you want to be included in the budget. By default, it will take the entire resource group. When you just created the resource group and the resources the forecast will be empty for a few hours.</p>
+
+<p><img src="/assets/blogs/2021-04-25/createbudget.png" alt="resourcegroupcost" /></p>
+
+<p>You can set the alert conditions to the actual cost or the forecasted cost.</p>
+
+<p><img src="/assets/blogs/2021-04-25/alerttype.png" alt="resourcegroupcost" /></p>
+
+<p>After setting your alert conditions you have the option to set an action group. These are the same action groups you can set on Azure alerts and alerts on Log Analytics. Within an account group, you can also trigger Azure Logic apps for example. This enables you to alter your resources when certain budgets are exceeding the limits.</p>
+
+<p><img src="/assets/blogs/2021-04-25/actiongroup.png" alt="resourcegroupcost" /></p>
+
+<p>Nou that we have saved everything the Azure portal will also show you the progress of that budget.</p>
+
+<p><img src="/assets/blogs/2021-04-25/forecast.png" alt="resourcegroupcost" /></p>
+
+<p>This is all for now, if you have any questions feel free to post a message in the discussion on GitHub <a href="https://github.com/foppenm/foppenm.github.io/discussions/7">here</a>. Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="Cost" /><category term="Budgets" /><summary type="html"><![CDATA[Using azure budgets to taking control of your spending]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2021-04-25/cover.png" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2021-04-25/cover.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Security headers with Azure static websites</title><link href="https://www.re-mark-able.net/blogs/2021/04/18/security-headers-with-static-sites.html" rel="alternate" type="text/html" title="Security headers with Azure static websites" /><published>2021-04-18T14:28:29+00:00</published><updated>2021-04-18T14:28:29+00:00</updated><id>https://www.re-mark-able.net/blogs/2021/04/18/security-headers-with-static-sites</id><content type="html" xml:base="https://www.re-mark-able.net/blogs/2021/04/18/security-headers-with-static-sites.html"><![CDATA[<p>When creating a static website by using a storage account (not the new Azure Static WebApp) you have no say about what security headers are sent to the end-users. This can be easily solved by using a premium CDN like Verizon. First, let’s explain a little about what security headers are and why you should care.</p>
+
+<h2 id="security-headers">Security headers?</h2>
+<p>According to <a href="https://owasp.org/www-community/Security_Headers">OWASP</a>, you should not divulge any information about the server or its configuration to the end-user as this can be used by hackers to exploit a vulnerability. But what are security headers?</p>
+
+<p>Security headers are sent between the server and the client for every request that is made, like loading HTML, images, or API calls. These headers indicate if some options are possible in the client and are sent in a simple form of key and value. Let’s take an easy one like ‘X-Frame-Options: Deny’. If this header is present it prevents the current page from being loaded into an iframe on another page or website.</p>
+
+<p>If you want to look at the security headers yourself you can open de developers tools of your browser (F12 for Edge) and go to the network tab. Then browse to https://www.google.com and your result will look like the screenshot below. As you can see, Google only allows this specific resource to be in an iframe of the origin is the same as google.com.</p>
+
+<p><img src="/assets/blogs/2021-04-18/googleheaders.png" alt="googleheaders" /></p>
+
+<p>If you want to do this with Azure Static website by using a storage account then you are out of luck. There is no option to enable or change the headers. Instead, let’s see what a Premium Verizon CDN brings us. Ouch sounds expensive…</p>
+
+<h2 id="setup-premium-cdn">Setup Premium CDN</h2>
+<p>Within a storage account, you have the option to configure a Azure CDN (in the menu). A CDN is designed to deliver static content like images, audio, and video faster to the end-user because it will locate the nearest datacenter and retrieve the file from there. You can create a Verzion CDN like this</p>
+
+<p><img src="/assets/blogs/2021-04-18/verizoncdncreate.png" alt="verizoncdn create" /></p>
+
+<p>Make sure to select the Static website and not the blob container. When this is done you will have multiple new resources in your resource group. You will have a new CDN Profile and an Endpoint resource. If you look closely you will see that these resources are created a global location and not a specific region. Now, let’s look into the created ‘CDN Profile’ resource which will be your Verizon CDN.</p>
+
+<p><img src="/assets/blogs/2021-04-18/verizoncdn.png" alt="verizoncdn create" /></p>
+
+<p>It can take some time to get it into a running state. In the top right corner, you can see that this is a Premium Verizon CDN. You can access the Verizon page by clicking ‘Manage’ at the top. For me, the authentication didn’t work flawlessly in the beginning. Looks like Verizon needs time to set everything up on their side, so give it some time.</p>
+
+<p>To be able to add security headers we need to go to the Rule Engine. This can be done by opening the HTTP Large menu</p>
+
+<p><img src="/assets/blogs/2021-04-18/rulesengine.png" alt="rulesengine" /></p>
+
+<p>When you open the rules engine there is an option to create a draft rule. Rules in this rules engine go through multiple stages: Draft &gt; Staging &gt; Production. When in production they are live and actively used.</p>
+
+<p>The rules engine is very easy and will allow you to manage all your headers. Using the action ‘Overwrite’ will allow you to update and if they do not exists add the headers like X-Frame-Options. If you want to remove the headers of Microsoft then you can also do that with the ‘Delete’ action as seen below.</p>
+
+<p><img src="/assets/blogs/2021-04-18/securityheaders.png" alt="securityheadres" /></p>
+
+<p>If you save these changes and push it to production you can browse to your static website and see that the headers are applied. This is all good, but what does it cost? I mean it’s a Premium Verizon CDN.</p>
+
+<h2 id="what-does-it-cost">What does it cost?</h2>
+<p>With a Verizon CDN, you do not pay per transaction. You pay for the data transferred and there are no upfront costs. In this example, we calculate with a high traffic website that has transferred 50GB of data on static files.</p>
+
+<p><img src="/assets/blogs/2021-04-18/costs.png" alt="costs" /></p>
+
+<p>As you can see it’s only ~$14 a month for this solution. The other options are using a Azure Frontdoor or an Application Gateway which are both much much more expensive.</p>
+
+<p>This is all for now, if you have any questions feel free to post a message in the discussion on GitHub <a href="https://github.com/foppenm/foppenm.github.io/discussions/5">here</a>. Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="Static Website" /><category term="Verizon CDN" /><summary type="html"><![CDATA[Using premium CDN to add headers to your static site hosted on Azure]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2021-04-18/cover.png" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2021-04-18/cover.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">How to do multi-trigger Azure Logic Apps</title><link href="https://www.re-mark-able.net/blogs/2021/04/11/logic-app-multi-trigger.html" rel="alternate" type="text/html" title="How to do multi-trigger Azure Logic Apps" /><published>2021-04-11T14:28:29+00:00</published><updated>2021-04-11T14:28:29+00:00</updated><id>https://www.re-mark-able.net/blogs/2021/04/11/logic-app-multi-trigger</id><content type="html" xml:base="https://www.re-mark-able.net/blogs/2021/04/11/logic-app-multi-trigger.html"><![CDATA[<p>When developing solutions with Azure Logic Apps you often run into limitations in comparison to developing with C# &amp; .NET. But it is also much much simpler to connect business applications with the few hundred connectors available today. One of the limitations is that the designer does not support multiple start triggers at this time. However multiple start trigger is possible. Let’s see how we can do this.</p>
+
+<h2 id="creating-a-logic-app">Creating a logic app</h2>
+<p>Start by creating a new Logic App and added the step “When a HTTP request is received”. You can save the logic app and it will create a URL where you can post data to.</p>
+
+<p><img src="/assets/blogs/2021-04-07/emptylogicapp.png" alt="EmptyLogicApp" /></p>
+
+<p>When we see the code view behind this logic app it will be similar to the one below. We can now post to the URL the designer view is giving you.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"definition"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"$schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+        </span><span class="nl">"contentVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"outputs"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+        </span><span class="nl">"parameters"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+        </span><span class="nl">"triggers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"manual"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"inputs"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+                </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Http"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Request"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"parameters"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<h2 id="adding-the-second-trigger">Adding the second trigger</h2>
+<p>Now we can add a second trigger but before we do that there is one nasty caveat with this approach.. You will lose the designer view. Even when this is the case it still can be useful in advanced scenarios where you can not create resources yourself in Azure due to company policies (and it took you 3 weeks to create this above logic app.. it happens). Or maybe you just want multiple recurrence triggers. On the latter, let’s add a recurrence trigger as the second trigger.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"definition"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"$schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+        </span><span class="nl">"contentVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"outputs"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+        </span><span class="nl">"parameters"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+        </span><span class="nl">"triggers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"Recurrence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"recurrence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"frequency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Minute"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"interval"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Recurrence"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="nl">"manual"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"inputs"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+                </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Http"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Request"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"parameters"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<p>As you can see the property ‘triggers’ is already plural and should support multiple triggers. By adding the recurrence trigger you can have multiple triggers. As documented in the Microsoft docs <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-limits-and-config">here</a>, you can have up to 10 triggers.</p>
+
+<h2 id="downside">Downside</h2>
+<p>Now that we have 2 triggers the Logic App will fire when called by an HTTP request but also every minute. As stated earlier the downside is that you cannot use the designer anymore. Not for the run history and not for updating the Logic App.</p>
+
+<p><img src="/assets/blogs/2021-04-07/runhistory.png" alt="EmptyLogicApp" /></p>
+
+<h2 id="should-you-use-this">Should you use this?</h2>
+<p>TLDR: No. This should only be used when you have no other option since the designer and run history views are what is making Logic Apps great. Since creating Logic Apps does not bring any extra costs you should just create multiple Logic Apps. Each of them with the specific trigger you want. Then all Logic Apps with the triggers call the one logic that will execute the trigger.</p>
+
+<p>TIP: Pay attention to the ‘Retry policy’ setting when calling other Logic Apps. It can cause some unwanted retries.</p>
+
+<p>This is all for now, if you have any questions feel free to post a message in the discussion on GitHub <a href="https://github.com/foppenm/foppenm.github.io/discussions/4">here</a>. Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="Logic Apps" /><summary type="html"><![CDATA[Logic apps normally have 1 trigger, let's see how we can change this using the Azure portal]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2021-04-07/cover.png" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2021-04-07/cover.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Blazor WebAssembly with Azure Active Directory and Functions</title><link href="https://www.re-mark-able.net/blazor-webassembly-with-azure-active-directory/" rel="alternate" type="text/html" title="Blazor WebAssembly with Azure Active Directory and Functions" /><published>2020-04-02T14:28:29+00:00</published><updated>2020-04-02T14:28:29+00:00</updated><id>https://www.re-mark-able.net/blazor-webassembly-with-azure-active-directory</id><content type="html" xml:base="https://www.re-mark-able.net/blazor-webassembly-with-azure-active-directory/"><![CDATA[<p>Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers. In this post I will focus on authentication with Azure AD. For this I created a <a href="https://github.com/foppenm/multi-tenant-blazor-web-and-backend">repository</a> on github.
+This solution will allow you to authenticate and make calls to an Azure function with Blazor WebAssembly.The Azure function and Blazor app will be Azure Active Directory protected.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>Use the latest Blazor preview installed 3.2.0-preview3.20168.3. See <a href="https://devblogs.microsoft.com/aspnet/blazor-webassembly-3-2-0-preview-3-release-now-available/">here</a> for more info.</li>
+</ul>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>First, we need to create an app registration in your Azure Active Directory. You can do this by going to https://portal.azure.com for the Tenant you want to deploy your app in. Create an application like below. Set the redirect URL to localhost so that you can use it on your local machine.</p>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/RegisterApp.png" alt="Blazorise" /></p>
+
+<p>After your registration is completed it should look like this:</p>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/RegisterAppCompleted.png" alt="Blazorise" /></p>
+
+<p>Go to the “Expose Api” page and set the Application ID URI to API://clientid. My client id in this case is ddc79846-0ed0-4347-a997-dc10bcf58e48. After this, you also need to set the scope. Set this to API://clientid/user_impersonation and Save.</p>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/ExposeApi.png" alt="Blazorise" /></p>
+
+<p>Now, let’s go to the Authentication page and change the URLs to match the ones below. Als make sure to check the <strong>Access Tokens</strong> and <strong>ID tokens</strong> checkbox. If you haven’t already done so make the app multi-tenant at the bottom.</p>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/Authenticationpage.png" alt="Blazorise" /></p>
+
+<h2 id="azure-function-config">Azure function config</h2>
+<p>I am not going in-depth on how to deploy an Azure function and will go straight to the configuration. Before we do that we need to take 2 things from the application registration we just configured</p>
+
+<ul>
+  <li>Client ID</li>
+  <li>Client Secret (Generate one in the Certificates &amp; Secrets page)</li>
+</ul>
+
+<p>After you have copied these go to your azure function and go to the new still in preview portal of Azure functions. Go to the Authentication/Authorization page.</p>
+
+<p>Do 3 things here:</p>
+<ul>
+  <li>Switch App Service Authentication to <strong>On</strong></li>
+  <li>Set Action to take when a request is not authenticated to <strong>Log in with Azure Active Directory</strong></li>
+  <li>Click the Azure Active Directory row</li>
+</ul>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/EnableAdOnlyAuth.png" alt="Blazorise" /></p>
+
+<p>The second to last step is to set the Active Directory Authentication to advanced and paste you two values we copied earlier.</p>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/SetTheAdAuthenticatioOptions.png" alt="Blazorise" /></p>
+
+<p>This should be enough to get it working. Still, if you want to make sure it works on your local machine we have one more setting to go.</p>
+
+<p>Go to the cors page of azure functions and set an extra cors rule to your localhost environment as I did:</p>
+
+<p><img src="https://raw.githubusercontent.com/foppenm/multi-tenant-blazor-web-and-backend/master/docs/images/Cors.png" alt="Blazorise" /></p>
+
+<h2 id="configure-the-solution">Configure the Solution</h2>
+<p>For you to be able to run this solution there are a few settings that need to be done. Open the solution (or folder if you are in vs code) and edit the appsettings.json file in the <strong>Web</strong> project. Set your own clientId and API backend. This can be the Azure function we just configured or a localhost function. Do note that on your local machine you can not test the AD authentication.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"clientId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ddc79846-0ed0-4347-a997-dc10bcf58e48"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"postLogoutUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://localhost:5001"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"apiBackend"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://&lt;your azure functionn&gt;.azurewebsites.net/api/"</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="err">or</span><span class="w"> </span><span class="s2">"https://localhost:7071/api"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>That is it. If something is not working for you, feel free to create an issue on the github repository.</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Blazor" /><category term="Serverless" /><summary type="html"><![CDATA[Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2020-04-02/cover.png" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2020-04-02/cover.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Azure AD Application Registration Security with Graph API</title><link href="https://www.re-mark-able.net/azure-ad-application-registration-security/" rel="alternate" type="text/html" title="Azure AD Application Registration Security with Graph API" /><published>2019-10-04T14:28:29+00:00</published><updated>2019-10-04T14:28:29+00:00</updated><id>https://www.re-mark-able.net/azure-ad-application-registration-security</id><content type="html" xml:base="https://www.re-mark-able.net/azure-ad-application-registration-security/"><![CDATA[<p>In many Azure Active Directories, there are registered applications. These applications all have security permissions. Do you know which one has which permissions and can access what data and resources? Do you know who has the secrets that give access to this data? Let’s take a look at how we can achieve this.</p>
+
+<p>In this blog, I will show you how to generate a list of applications and the permissions they have by using the beta version of the Microsoft Graph API. This will allow you to act on them. It is fine if some applications have a high permission level. At least after reading this blog you have the change retrieve them and to make sure the owners of the applications guard the secrets the best they can. Let’s dive right into retrieving the applications.</p>
+
+<p>Don’t know what Azure Active Directory Application registrations are? Check out <a href="https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations/">this</a> earlier blog post. If you wanna know more about the Microsoft Graph API beta you can see <a href="https://www.re-mark-able.net/how-to-access-data-from-the-beta-channel-of-graph-api/">this</a> blog on how to connect to it.</p>
+
+<h2 id="setup-app-registration-with-permissions">Setup app registration with permissions</h2>
+<p>Before we can retrieve the applications from the Graph API, we need to authenticate it to the Azure Active Directory. This is done by adding an application registration. Yes, this is the same type of application we are trying to retrieve. In this case we are need to create a application registration with Directory.Read.All permission.</p>
+
+<p>To create an application you can go to my GitHub <a href="https://github.com/foppenm/Microsoft-Graph-Applications">here</a>. There is a detailed guide in the readme on how to set this up.</p>
+
+<blockquote>
+  <p>After you are done retrieving the applications, make sure to disable or delete this application.</p>
+</blockquote>
+
+<p>Now that you have created the application, you can get an access token. We do this in C# by using the MSAL library (Microsoft.Identity.Client). This allows you to generate the token we use later in this blog.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">var</span> <span class="n">ccab</span> <span class="p">=</span> <span class="n">ConfidentialClientApplicationBuilder</span>
+    <span class="p">.</span><span class="nf">Create</span><span class="p">(</span><span class="n">clientId</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">WithClientSecret</span><span class="p">(</span><span class="n">clientSecret</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">WithTenantId</span><span class="p">(</span><span class="n">tenantId</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">Build</span><span class="p">();</span>
+
+<span class="kt">var</span> <span class="n">tokenResult</span> <span class="p">=</span> <span class="n">ccab</span><span class="p">.</span><span class="nf">AcquireTokenForClient</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="p">{</span> <span class="s">"https://graph.microsoft.com/.default"</span> <span class="p">});</span>
+<span class="kt">var</span> <span class="n">token</span> <span class="p">=</span> <span class="k">await</span> <span class="n">tokenResult</span><span class="p">.</span><span class="nf">ExecuteAsync</span><span class="p">();</span>
+<span class="k">return</span> <span class="n">token</span><span class="p">.</span><span class="n">AccessToken</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>The token we just retrieved is a JWT token that permits us to access the Graph API. Specifically in this case to retrieve the applications from an Azure tenant.</p>
+
+<blockquote>
+  <p>If you ever wonder what permissions are associated with the current token. Go to <a href="https://jwt.io/">https://jwt.io/</a> and paste in your token.</p>
+</blockquote>
+
+<h2 id="retrieve-applications">Retrieve Applications</h2>
+<p>To retrieve the applications we use the previous access token and make a GET call to https://graph.microsoft.com/beta/applications. Notice that we make use of the <strong>beta</strong> version of the Graph API.</p>
+
+<p>Below is the C# code:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">request</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HttpRequestMessage</span><span class="p">(</span><span class="n">HttpMethod</span><span class="p">.</span><span class="n">Get</span><span class="p">,</span> <span class="s">"https://graph.microsoft.com/beta/applications"</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Accept</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">MediaTypeWithQualityHeaderValue</span><span class="p">(</span><span class="s">"application/json"</span><span class="p">));</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Authorization</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">AuthenticationHeaderValue</span><span class="p">(</span><span class="s">"Bearer"</span><span class="p">,</span> <span class="s">"&lt;Your Access Token Here&gt;"</span><span class="p">);</span>
+
+    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HttpClient</span><span class="p">())</span>
+    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="nf">SendAsync</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="n">response</span><span class="p">.</span><span class="nf">EnsureSuccessStatusCode</span><span class="p">();</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">Content</span><span class="p">.</span><span class="nf">ReadAsStringAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Executing this code will return all the applications from the tenant.</p>
+
+<blockquote>
+  <p>Each call to the Graph API will result in a maximum of 100 results. If there are more results, there will be a nextlink property with a URL to retrieve the next 100 results.</p>
+</blockquote>
+
+<p>Below is an example of the JSON returned. I removed a lot of empty properties in this case. As you can see we have retrieved an application but the only readable data is the display name. What API’s is this app giving permissions to? What permissions are assigned? Are these delegated or application permissions?</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1deb4abb-fea2-401b-8881-0bf7f86dda12"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"appId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"092424f2-09ba-49fb-bfd1-f4fd9c352e82"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"createdDateTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-08-10T21:08:51Z"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"displayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Data Engine"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"appRoles"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nl">"keyCredentials"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nl">"passwordCredentials"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nl">"requiredResourceAccess"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"resourceAppId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"00000003-0000-0000-c000-000000000000"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"resourceAccess"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"465a38f9-76ea-45b9-9f34-9e8b0d4b0b42"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Scope"</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"e1fe6dd8-ba31-4d61-89e7-88639da4683d"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Scope"</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"df021288-bdef-4463-88db-98f22de89214"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Role"</span><span class="w">
+                </span><span class="p">}</span><span class="w">
+            </span><span class="p">]</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>To make sense of al these guids we need to retrieve some extra data. By retrieving the service principle of each API we can link the guids to some actual text.</p>
+
+<h2 id="retrieve-service-principles">Retrieve service principles</h2>
+<p>First, let’s retrieve the service principles in the Azure tenant. We are doing the same call as before with a slight difference in the URL. Instead of calling the <strong>/application</strong> we now call <strong>/servicePrincipals?filter=appId eq ‘00000003-0000-0000-c000-000000000000’</strong>. This will retrieve the associated API.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">request</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HttpRequestMessage</span><span class="p">(</span><span class="n">HttpMethod</span><span class="p">.</span><span class="n">Get</span><span class="p">,</span> <span class="s">"/servicePrincipals?filter=appId eq '00000003-0000-0000-c000-000000000000'"</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Accept</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">MediaTypeWithQualityHeaderValue</span><span class="p">(</span><span class="s">"application/json"</span><span class="p">));</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Authorization</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">AuthenticationHeaderValue</span><span class="p">(</span><span class="s">"Bearer"</span><span class="p">,</span> <span class="n">_accessToken</span><span class="p">);</span>
+
+    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HttpClient</span><span class="p">())</span>
+    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="nf">SendAsync</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="n">response</span><span class="p">.</span><span class="nf">EnsureSuccessStatusCode</span><span class="p">();</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">Content</span><span class="p">.</span><span class="nf">ReadAsStringAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see below it will return the information about the Microsoft Graph. Also for this response, I deleted a lot of properties to make it a little more readable.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9a1be802-1792-48de-92e4-ea67cb2ec6e9"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"appDisplayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Microsoft Graph"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"appId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"00000003-0000-0000-c000-000000000000"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"displayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Microsoft Graph"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"publishedPermissionScopes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"adminConsentDescription"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allows the app to read events in user calendars . "</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"adminConsentDisplayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Read user calendars "</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"465a38f9-76ea-45b9-9f34-9e8b0d4b0b42"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"isEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"userConsentDescription"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allows the app to read events in your calendars. "</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"userConsentDisplayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Read your calendars "</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Calendars.Read"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"adminConsentDescription"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allows users to sign-in to the app, and allows the app to read the profile of signed-in users. It also allows the app to read basic company information of signed-in users."</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"adminConsentDisplayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sign in and read user profile"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"e1fe6dd8-ba31-4d61-89e7-88639da4683d"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"isEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"userConsentDescription"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allows you to sign in to the app with your organizational account and let the app read your profile. It also allows the app to read basic company information."</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"userConsentDisplayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sign you in and read your profile"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User.Read"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"publisherName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Microsoft Services"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"appRoles"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"allowedMemberTypes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="s2">"Application"</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allows the app to read user profiles without a signed in user."</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"displayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Read all users' full profiles"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"df021288-bdef-4463-88db-98f22de89214"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"isEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"origin"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Application"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User.Read.All"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>In the JSON result above you can also see that there are <strong>published permission scopes</strong> and <strong>approles</strong>. published permissions scopes are your delegated permissions and the approles are your application permissions. As you can see there is a lot of human-readable text instead of guids. Below is a simple overview of how each property links to another.</p>
+
+<p><img src="/content/images/2019/10/Annotation-2019-10-02-111549.png" alt="linkdata" /></p>
+
+<p>Now that we have retrieved the application we also want to know who the owner is. In case we have questions or for governance purposes, you want to know who owns the applications.</p>
+
+<h2 id="retrieve-the-owners">Retrieve the owners</h2>
+<p>Retrieving the owners is again the same principle as the other calls. By supplying your app id in the URL you can retrieve the owners of that specific app. It can return multiple results.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">request</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HttpRequestMessage</span><span class="p">(</span><span class="n">HttpMethod</span><span class="p">.</span><span class="n">Get</span><span class="p">,</span> <span class="s">$"/applications/</span><span class="p">{</span><span class="n">AppId</span><span class="p">}</span><span class="s">/owners"</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Accept</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">MediaTypeWithQualityHeaderValue</span><span class="p">(</span><span class="s">"application/json"</span><span class="p">));</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Authorization</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">AuthenticationHeaderValue</span><span class="p">(</span><span class="s">"Bearer"</span><span class="p">,</span> <span class="n">_accessToken</span><span class="p">);</span>
+
+    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HttpClient</span><span class="p">())</span>
+    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="nf">SendAsync</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="n">response</span><span class="p">.</span><span class="nf">EnsureSuccessStatusCode</span><span class="p">();</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">Content</span><span class="p">.</span><span class="nf">ReadAsStringAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>When the call is executed you will receive a JSON response similar to this</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"@odata.type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#microsoft.graph.user"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"displayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Mark Foppen"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jobTitle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Developer"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"userPrincipalName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test@re-mark-able.net"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="output-wrapped-in-web-application">Output wrapped in web application</h2>
+<p>Now you know how to retrieve the applications from you Azure tenant, link all the properties together and retrieve the owners, it is time to make it a little more visible then JSON output. To do this I created a simple web app that shows the output of the call for your specific tenant. The source code can be downloaded from my GitHub <a href="https://github.com/foppenm/Microsoft-Graph-Applications">here</a></p>
+
+<p><img src="/content/images/2019/09/Ui.png" alt="Ui" /></p>
+
+<h2 id="making-it-more-secure">Making it more secure</h2>
+<p>Now we know what applications we have and what permissions are assigned. We also retrieved who the owner is. Now it’s up to you to at least retrieve all the applications from your tenant and put some sort of governance on them. Of course, it is okay to keep applications that have permission to access data but now you can at least compare en react on it. Contact the owners to check if the app is still used and discuss why those permissions are needed.</p>
+
+<p>Thanks for reading and keep pushing to make things more secure!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="Active Directory" /><category term="Graph Api" /><summary type="html"><![CDATA[Retrieving Azure Active Directory Application Registrations by using the Microsoft Graph API SDK in beta channel]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2019-10-04/cover.jpg" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2019-10-04/cover.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Sending your Threat Indicators to Azure Sentinel</title><link href="https://www.re-mark-able.net/adding-threat-indicators-to-sentinel/" rel="alternate" type="text/html" title="Sending your Threat Indicators to Azure Sentinel" /><published>2019-08-18T14:28:29+00:00</published><updated>2019-08-18T14:28:29+00:00</updated><id>https://www.re-mark-able.net/adding-threat-indicators-to-sentinel</id><content type="html" xml:base="https://www.re-mark-able.net/adding-threat-indicators-to-sentinel/"><![CDATA[<p>How and why should you send your threat indicators to Azure Sentinel or add them manually to the Microsoft Defender Advanced Threat Protection (MDATP) solution? What is an indicator, also known as an Indicator of Compromise (IoC)? Why should you care? How can you do this? Let’s go through this and add indicators manually and by using a Logic App and the Microsoft Graph Security API.</p>
+
+<p>First, we will take a look into what an Indicator is and how it works in MDATP to get a better understanding of what we are dealing with. Then send the indicator to Azure Sentinel through the Microsoft Graph Security API.</p>
+
+<h2 id="what-is-an-indicator">What is an indicator?</h2>
+<p>An IoC is a piece of evidence that could indicate you have malicious activity in your environment. This can have many forms i.e.:</p>
+<ul>
+  <li>File hashes</li>
+  <li>Network activities</li>
+  <li>Ip address or URL’s</li>
+</ul>
+
+<p>The IoC on its own doesn’t necessarily mean you have been compromised. Often the combination of file hashes, network activity, and origin (IP or Url) are the providers of context which in turn determines if it is a threat. For more info, you can have a look at the Mitre ATT&amp;CK framework <a href="https://digitalguardian.com/blog/what-mitre-attck-framework">here</a>. This is a framework to describe what tactics and techniques are used to identify and defend against attacks on your organization.</p>
+
+<p>This is all good and fine but what if you encounter an application on one of your managed devices and want to block it for the entire organization? Take for example an Android application (.apk) that is not detected by MDATP at the moment. As we all know these applications can also have malware in them or download other applications. One of your users sends it to another and another and so forth. How can you stop this? By adding the file hash of the APK to the indicators in MDATP. This will stop the spreading of the file and allow you to further investigate it.</p>
+
+<h2 id="add-an-indicator-manually">Add an indicator manually</h2>
+
+<p>Let’s go to the MDATP <a href="https://securitycenter.windows.com">portal</a> and sign in. To get to the <strong>Indicators</strong> page we first have to go to <strong>Settings</strong> in the left menu and then to the indicators page. Here you have an overview of all your indicators. This should look like the portal below</p>
+
+<p><img src="/content/images/2019/07/Overview.png" alt="Overview" /></p>
+
+<p>By clicking on <strong>+Add Indicator</strong> we can add a new indicator manually. Here you must give the file hash which can be a SHA1, SHA256 or MD5. For now, there is a limit of 5000 indicators at the time of writing this post. By setting the expiration date you automatically clean them up.</p>
+
+<p><img src="/content/images/2019/07/AddIndicator.png" alt="AddIndicator" /></p>
+
+<p>When you go to the next step in adding an indicator you must determine the actions MDATP should take when there is a file with the same hash. We have 3 possible actions:</p>
+<ul>
+  <li>Allow</li>
+  <li>Alert Only</li>
+  <li>Alert and Block</li>
+</ul>
+
+<p><strong>Allow</strong> is used when MDATP is already blocking a file or executable that you do not want to be blocked. Take for example Mimikatz, if you put the file hash of that in here you can use the program without MDATP putting it in quarantine.</p>
+
+<p><strong>Alert Only</strong> is used when you only want to receive an alert that the file is detected but not want to block it. If you can post the Alert yourself you should not be using this. Instead use the MDATP API (docs <a href="https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/create-alert-by-reference">here</a>) to create the alert. This way you won’t be using another spot on that 5000 entries limit.</p>
+
+<p><strong>Alert &amp; Block</strong> is used when you immediately want to block the file on all or scope of machines. Be very careful with this option. If a critical windows file ends up here it will have an impact on your organization.</p>
+
+<p><img src="/content/images/2019/07/ActionIndicator.png" alt="ActionIndicator" /></p>
+
+<p>The 3rd and last page is to set the scope of the indicator. In the screenshot below you don’t see any scope since I don’t have any. The scope can be set to a determined list of machines or all machines in the organization.</p>
+
+<p><img src="/content/images/2019/07/ScopeIndicators.png" alt="ScopeIndicators" /></p>
+
+<p>The last step is the summary to make sure you didn’t make a mistake and double-check your input.</p>
+
+<p><img src="/content/images/2019/07/Summary.png" alt="Summary" /></p>
+
+<p>After we completed these simple steps you will see the indicator added to the list.</p>
+
+<p><img src="/content/images/2019/07/Added.png" alt="Added" /></p>
+
+<h2 id="add-indicators-through-the-microsoft-graph-security-api">Add Indicators through the Microsoft Graph Security API</h2>
+<p>Now that we have a good understanding of what threat indicators are and how they are working, we can start adding them to Azure Sentinel. Why would we want to add them to Azure Sentinel? Azure Sentinel is a very good product to correlate security events across different log sources and different Microsoft security products.</p>
+
+<blockquote>
+  <p>Make sure that the <strong>Threat Intelligence</strong> data connector in Azure Sentinel is enabled.</p>
+</blockquote>
+
+<p>To add the indicators to Azure we are using the Microsoft Graph Security API (beta). Before we post a new indicator we need to set some properties first:</p>
+<ul>
+  <li>Action: Alert, only give an alert, do not block the file.</li>
+  <li>FileHashType: SHA256, in this example we only process SHA256 hashes to keep it simple</li>
+  <li>FileHashValue: The actual file hash</li>
+  <li>ExpirationDate: When will the indicator expire</li>
+</ul>
+
+<p>A basic post message would look something like this:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"alert"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"activityGroupNames"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+  </span><span class="nl">"confidence"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"This is a canary indicator for demo purpose. Take no action on any observables set in this indicator."</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"expirationDateTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-03-01T21:44:03.1668987+00:00"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"externalId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Test--8586509942423126760MS164-0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"fileHashType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sha256"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"fileHashValue"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b555c45c5b1b01304217e72118d6ca1b14b7013644a078273cea27bbdc1cf9d5"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"killChain"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+  </span><span class="nl">"malwareFamilyNames"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+  </span><span class="nl">"severity"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"tags"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+  </span><span class="nl">"targetProduct"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Azure Sentinel"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"threatType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"WatchList"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"tlpLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"green"</span><span class="p">,</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<p>To keep it simple you can either post this to the Graph Security API with <a href="https://www.getpostman.com/">postman</a> or by using an Azure Logic App as I did. Your Logic App Http step will look similar to below:</p>
+
+<p><img src="/content/images/2019/07/logicapp.png" alt="logicapp" /></p>
+
+<p>In the logic app, you see a client id and client secret. These are from the application registration and you can have a look <a href="https://www.re-mark-able.net/how-to-access-data-from-the-beta-channel-of-graph-api/">here</a> how you can set that up. Keep in mind that your application needs the permission <strong>ThreatIndicators.ReadWrite.OwnedBy</strong> for the request to work. This permission needs to be granted by a global administrator in your tenant.</p>
+
+<blockquote>
+  <p>Did you notice the <strong>targetProduct</strong> property set to <strong>Azure Sentinel</strong>? This is what specifies where the indicator is redirected to.</p>
+</blockquote>
+
+<p>After a successful post, you can view the indicator in the Azure Sentinel dashboard. This can be done by going to the ThreatIntelligenceIndicator log source</p>
+
+<p><img src="/content/images/2019/08/SentinelLogSource.png" alt="SentinelLogSource" /></p>
+
+<p>When you query this you will get something similar like below, depending on how many indicators you posted.</p>
+
+<p><img src="/content/images/2019/08/Sentinel.png" alt="Sentinel" /></p>
+
+<p>It is re[mark]able how easy it is to add indicators to MDATP and Azure Sentinel, but yet so powerful. Now you can leverage the data of indicators in Azure Sentinel alerting, correlation and hunting.</p>
+
+<p>Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Windows Defender for Endpoint" /><category term="MDATP" /><category term="Sentinel" /><summary type="html"><![CDATA[How and why should you send your threat indicators to Azure Sentinel or add them manually to the Microsoft Defender Advanced Threat Protection (MDATP) solution? What is an indicator? Why should you care? How can you do this? Let's go through this.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2019-08-18/cover.jpg" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2019-08-18/cover.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Understanding Azure Active Directory App Registrations</title><link href="https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations/" rel="alternate" type="text/html" title="Understanding Azure Active Directory App Registrations" /><published>2019-08-14T14:28:29+00:00</published><updated>2019-08-14T14:28:29+00:00</updated><id>https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations</id><content type="html" xml:base="https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations/"><![CDATA[<p>Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there are registered applications. These applications could all have security permissions and maybe even admin consents to access data across your organization. Do you know which one has which permissions and can access what data and resources? Do you know who has the client secrets that give access to this data? Let’s take a look at a non-technical approach to AAD Application Registrations.</p>
+
+<h2 id="what-is-an-application-registration">What is an Application Registration</h2>
+<p>The application registration in your tenant enables you and others to authenticate against your Azure Active Directory. Another option is to authentication through an application secret. A default application registration on its own cannot do much more than validating that the user has valid login credentials. This can be your Active Directory or in case of a multi-tenant application the directory where the user is originated from. It is also possible to let users login with their @outlook.com and @live.com accounts if you configure this.</p>
+
+<p>If you go to your AAD in the <a href="https://portal.azure.com">Azure portal</a> you can view all the registered applications in your tenant.</p>
+
+<p><img src="/content/images/2019/07/Registrations-1.png" alt="Registrations-1" /></p>
+
+<p>So what other benefits would an application registration have? First, let’s think of a scenario where we would need one.</p>
+
+<blockquote>
+  <p><strong>Scenario:</strong> The customer wants a single web page where users sign-in with their AD account and view their profile information. This is done by using the Microsoft Graph API to retrieve the profile data.</p>
+</blockquote>
+
+<p>The developers of the application implement the requirements and when they start testing it is failing on retrieving the information from the Microsoft Graph API. Something similar to this is what they will see:</p>
+
+<p><img src="/content/images/2019/07/error.png" alt="error" /></p>
+
+<p>In the application registration, you have the option to specify which permissions the application has. Each permission gives access to a part of your resources or users within your Azure tenant. For this scenario the permission <em>User.Read</em> would be enough to read basic profile information. What other kinds of permissions can we expect? We will talk about that in a moment.</p>
+
+<p>If you want to see how you can configure a new application registration in your tenant then you can have a look at my previous blog <a href="https://www.re-mark-able.net/how-to-access-data-from-the-beta-channel-of-graph-api/">here</a> (technical) on how to register a new application. Of course for extended details, you can always take a look at the official Microsoft documentation <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app">here</a>.</p>
+
+<h2 id="different-types-of-permissions">Different Types of Permissions</h2>
+
+<p>There are hundreds of permissions you can give an application. You first need to choose which API and then select the permissions you want. To give an impression:</p>
+
+<p><img src="/content/images/2019/07/permissions.gif" alt="permissions" /></p>
+
+<p>As you may have seen there are 2 types of permissions you can choose:</p>
+
+<ul>
+  <li>Delegated</li>
+  <li>Application</li>
+</ul>
+
+<p><strong>Delegated</strong> permissions are used when you want to authenticate to an API or other services with the currently logged-on user. This typically involves a physical user and a user interface.</p>
+
+<blockquote>
+  <p>A delegated permission will never give the user more permissions then they already have within this AD.</p>
+</blockquote>
+
+<p>If an application registration has the permission <strong>Directory.ReadWrite.All</strong> and a normal user without any privileged roles logged in into the application. The user will not be able to write to the current directory. When for example a Global Administrator logs in, he will have the ability to write to the directory.</p>
+
+<p><strong>Application</strong> permission are used when there is no user present. Mostly used for API to another API calls. This is also used for background services. Unlike delegated permissions, application permissions, however, uses the app id and secret to login and always has the given permissions of the application.</p>
+
+<blockquote>
+  <p>Application permissions (almost) always require admin consent since it can give users more permission then their account.</p>
+</blockquote>
+
+<p>Be very careful what permissions are given to an app registration that uses <em>Application</em> permissions. There is literally only one secret needed to access the application because the app id is often publicly known. Since there is no Multi-Factor Authentication (MFA) available, because this authentication is based on no user interaction, generate the secrets with an expiry time or rotate them on a scheduled basis. This is however not supported by the Azure Portal at the moment. In my opinion, this should be taken into consideration when the application is designed.</p>
+
+<p>Before an application can be used with any privileged permissions there is, as stated above, an admin consent required. Let’s find out what consent is and what types are available.</p>
+
+<h2 id="giving-consent">Giving Consent</h2>
+
+<p>What are the types of consent that can be given? There are three at the moment. User consent, admin consent and admin consent across the entire organization. The last two can, as the name indicates, only be given by a Global Administrator of that tenant.</p>
+
+<p><strong>User Consent</strong></p>
+<ul>
+  <li>User authorizes that their data can be used (image)</li>
+  <li>Limited to only permissions that the user can consent to</li>
+  <li>The Graph API i.e. published a list of all the permissions with an indicator if admin consent is required. You can find the list <a href="https://docs.microsoft.com/en-us/graph/permissions-reference">here</a></li>
+</ul>
+
+<p><img src="/content/images/2019/07/UserConsent.png" alt="UserConsent" /></p>
+
+<p><strong>Admin Consent</strong></p>
+
+<ul>
+  <li>Can only be given by a Global Administrator</li>
+  <li>Often for permissions that can make alterations to other objects than the current user</li>
+  <li>When admin consent is needed, your users will get a message like this:</li>
+</ul>
+
+<p><img src="/content/images/2019/08/adminconsent-1.png" alt="adminconsent-1" /></p>
+
+<p><strong>Admin Consent on behalf of Organization</strong></p>
+
+<ul>
+  <li>Give consent for the entire tenant</li>
+  <li>Users do not get a permission consent screen anymore</li>
+  <li>Users don’t see which data is used from them</li>
+  <li><strong>CAUTION</strong> if you consent here, you give the entire organization permissions on this application.</li>
+</ul>
+
+<p>If you don’t want everyone in the organization to have access to this app you can block that by setting <em>User assignment is required</em> to Yes in the Enterprise application. More on this in the next part.</p>
+
+<p><img src="/content/images/2019/08/orgConsent.png" alt="orgConsent" /></p>
+
+<p>This can also be done in the Azure portal by going to the application page in de AAD and clicking the <em>Grant Admin Consent</em> as you can see below</p>
+
+<p><img src="/content/images/2019/08/grandconsent.png" alt="grandconsent" /></p>
+
+<blockquote>
+  <p>Any user can add <strong>Admin</strong> permissions to their application registration although the permission are not active until granted by an actual Global Administrator.</p>
+</blockquote>
+
+<p>If you want to go more in-depth you can visit the docs at Microsoft <a href="https://docs.microsoft.com/bs-cyrl-ba/azure/active-directory/develop/application-consent-experience">here</a></p>
+
+<h2 id="managing-enterprise-applications">Managing Enterprise Applications</h2>
+<p>When you create an application through application registration there is also an enterprise application created in your AAD once the first user has logged on. This is used to manage how the registration behaves in your organization. This could be in the same tenant as you created the application registration in. For a multi-tenant app, there would only exist an Enterprise Application. Enterprise applications can be found under your AAD in the Azure portal</p>
+
+<p><img src="/content/images/2019/08/enterpriseapplications.png" alt="enterpriseapplications" /></p>
+
+<p>In the enterprise application, you cannot change permissions, but you can manage your or an external (3rd party) application from here. This is what you can do:</p>
+
+<ul>
+  <li>Enable or disable the ability for users to log in</li>
+  <li>Change the Application icon</li>
+  <li>User assignment is required - When turned to Yes user cannot log in into the application without first being added by the owner of the app or by some with a privileged role like a global admin.</li>
+  <li>Visible to Users - Show or Hide the application in the office.com top left launcher menu (at the bottom).</li>
+  <li>Delete the application</li>
+</ul>
+
+<p>It will look something like this</p>
+
+<p><img src="/content/images/2019/07/EnterpriseApplicationProperties.png" alt="EnterpriseApplicationProperties" /></p>
+
+<h2 id="why-care-about-these-applications">Why care about these applications?</h2>
+<p>At the moment, if you don’t have a clear process for application registrations, it is very unclear what permissions are assigned to all the applications. But more importantly who has access. Over time an Azure tenant can have lots of applications. Most of them are harmless and just read the users profile to show a name or use the email address. But then some applications only use an application secret to get access.</p>
+
+<p>What happens when this secret gets committed to a git repository by accident. Sending this secret to other developers is also not a good idea. Although these examples shouldn’t happen that often, they do so be careful with this.</p>
+
+<p>On the other side, we always assume a security breach comes from external sources or mistakes from employees. What about internal breaches? How often does this happen? Take a look at a few sources:</p>
+
+<ul>
+  <li><a href="https://securityintelligence.com/news/insider-threats-account-for-nearly-75-percent-of-security-breach-incidents/">75% are insider threats</a></li>
+  <li><a href="https://www.theregister.co.uk/2018/04/10/verizon_dbir/">Even partners attack you</a></li>
+</ul>
+
+<h2 id="what-can-happen">What can happen?</h2>
+<p>Any of the previous examples can result in a data breach or other malicious actions. Depending on what permissions the application has of course. In my opinion, for <em>delegated</em> permissions the chance of malicious action is very low, especially when MFA is enabled. For <em>application</em> type permissions this is a whole other world. When someone gets a hold of that secret they can do what the permissions allow them to.</p>
+
+<p>Possibilities:</p>
+<ul>
+  <li>Read all your users</li>
+  <li>Alter Azure resources</li>
+  <li>Add and delete users</li>
+  <li>etc, etc, almost anything you can do in the Azure portal</li>
+</ul>
+
+<p>There is no way of linking it back to a user and it will not show up in any of the Microsofts Security products since it looks like a legit use of the application registration.</p>
+
+<p>Then there are is also something that is called an illicit consent grant. The attacker tricks the user into consenting an application on their website or by injecting malicious code into an existing website. This allows the hacker to access your data without you knowing. Microsoft already acknowledged this kind of attack and made a <em>Detect</em> and <em>Remediation</em> guide for it <a href="https://docs.microsoft.com/en-us/office365/securitycompliance/detect-and-remediate-illicit-consent-grants">here</a>.</p>
+
+<p>With all the things that could happen is it wise to check the application registrations in your tenant and act on them. Let’s see if we can get an overview of the application registrations in your tenant</p>
+
+<h2 id="getting-the-overview">Getting the overview</h2>
+<p>Now we know what can happen, how can we get an overview of these applications? The Azure portal shows all the applications but it takes a lot of time to go into every application and check the permissions. This would be a major time sink. Unfortunately for the <em>application</em> type permissions, there is no other way at the moment. For <em>delegated</em> permissions there is a better way.</p>
+
+<p>What you can do is go the Microsoft Cloud App Security (MCAS) portal an see all the applications in your tenant with a permission level. This way you can focus on the high permissions applications first.</p>
+
+<p><img src="/content/images/2019/08/mcas2.png" alt="mcas2" /></p>
+
+<p>In this portal, you can also see if there is a consent given for all the users in this organization</p>
+
+<p><img src="/content/images/2019/08/orgconsent2.png" alt="orgconsent2" /></p>
+<h2 id="making-it-more-secure">Making it more secure</h2>
+
+<p>Now that you have a basic understanding of Azure AD Application Registrations there are a few things you can do:</p>
+<ul>
+  <li>Initiate an onboarding procedure for adding new Apps that have/need admin consent.</li>
+  <li>Refresh secrets on a scheduled basis (custom implementation needed)</li>
+  <li>Use Managed Identities where possible instead of connection strings</li>
+  <li>Double check if the permissions are needed, i.e. don’t set Directory.ReadWrite.All <em>application</em> permissions when you just want to read AD groups. Use the specific Group.Read.All permission for this.</li>
+</ul>
+
+<p>We now know how to see what applications we have within a tenant and how to see what permissions they have assigned. What you can do now is up to you. Of course, it is totally legit to have all these applications with the permissions, but now you can at least set up a process to guide this. Contact the owners if the application is still used and why those permissions are needed.</p>
+
+<p>Although it still is re[mark]able how much effort it cost to get an overview of <em>application</em> type permissions. I will look into this for a next blog.</p>
+
+<p>Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="Azure" /><category term="Active Directory" /><summary type="html"><![CDATA[Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/assets/blogs/2019-08-14/cover.jpg" /><media:content medium="image" url="https://www.re-mark-able.net/assets/blogs/2019-08-14/cover.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Using MDATP Streaming API with Misp</title><link href="https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/" rel="alternate" type="text/html" title="Using MDATP Streaming API with Misp" /><published>2019-07-23T14:28:29+00:00</published><updated>2019-07-23T14:28:29+00:00</updated><id>https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp</id><content type="html" xml:base="https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"><![CDATA[<p>Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection (MDATP)? It would be great if you can just access all that data through an API. But I really do not want to develop another polling mechanism to pull in all the data. That is where the new MDATP Streaming API comes in which just got enabled for public preview.</p>
+
+<p>In this post, you will see how easy it is to configure the new Streaming API and how you can get access to the data. You will see how the new API can be attached to Azure Storage and Azure Event Hub.</p>
+
+<p>Once we receive all the data we can check file hashes in a 3rd party threat intelligence provider like MISP. First, let’s configure the MDATP streaming API.</p>
+
+<h2 id="configure-mdatp-streaming">Configure MDATP Streaming</h2>
+<p>We start by going to the MDATP portal <a href="https://securitycenter.windows.com">here</a> where you will see the default dashboard. To start configuring you need to go to the Data Export Settings page.</p>
+
+<p><img src="/content/images/2019/07/DataExportSettings.gif" alt="DataExportSettings" /></p>
+
+<p>In this page, you can add a total of 5 streaming connections. At the moment there are two types of Azure resources you can connect to:</p>
+<ul>
+  <li>Azure Storage</li>
+  <li>Event Hub</li>
+</ul>
+
+<p>If you choose for the Azure Storage option then the MDATP stream will save all the events in a *.json file as blobs.</p>
+
+<p>On each connection you can choose between 9 types of events:</p>
+<ul>
+  <li>AlertEvents</li>
+  <li>MachineInfo</li>
+  <li>MachineNetworkInfo</li>
+  <li>ProcessCreationEvents</li>
+  <li>NetworkCommunicationEvents</li>
+  <li>FileCreationEvents</li>
+  <li>RegistryEvents</li>
+  <li>LogonEvents</li>
+  <li>ImageLoadEvents</li>
+  <li>MiscEvents</li>
+</ul>
+
+<p>For now, I am only going to focus on the connection between an Event Hub and MDATP for the <strong>FileCreationEvents</strong>. If you want to make sure that you catch all of the files and processes on every device you should also add the <strong>ProcessCreationEvents</strong>.</p>
+
+<p>When you add a new connection you will get all the options I just mentioned. You can make a choice here and configure the connection how you like. I am going to configure it for an event hub to only receive file creation events from MDATP.</p>
+
+<p><img src="/content/images/2019/07/AddEventHub.gif" alt="AddEventHub" /></p>
+
+<p>Now that the Event hub is configured the data should start coming in and it will look something like this</p>
+
+<p><img src="/content/images/2019/07/StreamingData.png" alt="StreamingData" /></p>
+
+<p><strong>Tip</strong>: Only enable the types of events you really want to have since the volume of messages can be very high. This is not an issue for Event Hub but could be very costly if you connect it to a logic app where you pay per execution.</p>
+
+<p>For example ‘NetworkCommunicationEvents’ logs every connection made on every machine. I had to learn the hard way by wasting my entire worth of monthly Azure credits ($150) in 2 days because it was connected to a Logic app :| …
+<img src="/content/images/2019/07/HighPeak.png" alt="HighPeak" /></p>
+
+<p>As you can see below most of the costs are in the connection and the executed actions for the logic app and not in the Event Hub. So be cautious as to what you connect to the Event Hub. The high event hub costs are due to the enabled ‘Capture’ feature and the standard tier. Not because of the number of events.
+<img src="/content/images/2019/07/Costs.png" alt="Costs" /></p>
+
+<p>This however triggered me to look into the actual costs of using the MDATP streaming API with Event Hub. To do that we first need to know how many events are sent. I created a new Event Hub namespace, connected it to MDATP streaming API and selected all available events. The next 24h I let it run to capture all the events. To give some context to this I have counted all the different types of events and the number of machines in my tenant.</p>
+
+<p>NetworkCommunicationEvents: <strong>95,070</strong>
+ImageLoadEvents: <strong>23,091</strong>
+MiscEvents: <strong>57,444</strong>
+ProcessCreationEvents: <strong>24,795</strong>
+RegistryEvents: <strong>49,191</strong>
+MachineInfo: <strong>2,213</strong>
+MachineNetworkInfo: <strong>10,712</strong>
+FileCreationEvents: <strong>39,487</strong>
+LogonEvents: <strong>1,982</strong>
+AlertEvents: <strong>4</strong></p>
+
+<p>This leaves us with a total of <strong>303.989</strong> events on <strong>83</strong> different machines. The average size of one event is ~2.47 kilo byte and one machine gives ~3,662 events per day. On monthly costs, this would mean you have ~9 million events which will cost you around $0.25.</p>
+
+<h2 id="consuming-eventhub-with-a-logic-app">Consuming Eventhub with a Logic app</h2>
+
+<p>Sometimes there are use cases that require a third-party threat intelligence system to check for malware. For example, to detect Android APK’s with malware in them. A good example you can see <a href="https://mobile.twitter.com/Maler360/status/1138695308462870528">here</a>. For this example, we will be using MISP also know as a Malware Information Sharing Platform and Threat Sharing. This is a free and community-driven threat intelligence platform. In this post, we will not cover how to set this up but you can see how this can be done on Kali Linux <a href="https://www.inspark.nl/misp-threat-intelligence-azure-sentinel/">here</a></p>
+
+<p>Here is a list of goals we want to achieve:</p>
+<ul>
+  <li>Read the events from the event hub</li>
+  <li>Check the file hashes against Misp</li>
+  <li>Add the indicator to MDATP</li>
+</ul>
+
+<p>Do note that this is an implementation in the most basic form you can think off without any error handling or what so ever. Let’s take a look at the Logic App overview
+<img src="/content/images/2019/07/LogicAppOverview.png" alt="LogicAppOverview" /></p>
+
+<p>First we receive the events through the Event Hub Logic App trigger which is connected to the MDATPStream hub as shown before. When you save the Logic App with only the trigger you will get a response like this:</p>
+
+<p><img src="/content/images/2019/07/LogicAppEventHubMessage.png" alt="LogicAppEventHubMessage" /></p>
+
+<p>Now that we receive events we can call the Misp API with the following parameters to check if that file is known as a possible indicator of compromise (IoC).</p>
+
+<p><img src="/content/images/2019/07/LogicAppCallMisp-1.png" alt="LogicAppCallMisp-1" /></p>
+
+<p>After this, we parse the response and check if there are any IoC’s returned from Misp. If that is the case we have found a match. At this point, it is up to you what you do with this detection. The first thing you could do i.e. is, Posting an Alert directly to MDATP with the Windows Defender Advanced Threat Protection (WDATP) logic app connector.</p>
+
+<p>The way to achieve alerting of the found IoC is through creating an alert with the WDATP connector. You can do this by adding it to your logic app and connect it with a global admin account.</p>
+
+<p><img src="/content/images/2019/07/AlertWDATP.png" alt="AlertWDATP" /></p>
+
+<p>To create an alert, you need to set the machine id which can be found in the event hub message. For the other fields, you can set them as you like. To give meaning to the alert, you should call the Misp once again and retrieve the event from Misp. An event in Misp gives context to the found IoC and therefore also contains fields like title, severity, comments, etc.</p>
+
+<h2 id="possibilities">Possibilities?</h2>
+<p>Although this post only describes one possible implementation of the MDATP streaming API there a lot more possibilities. To name a few:</p>
+
+<ul>
+  <li>Save the MDATP data to a separate storage to retain it indefinitely</li>
+  <li>Instead of polling your MDATP alerts from the graph API you can now respond to the alerts real-time</li>
+  <li>Monitor network communication real-time</li>
+  <li>Stream your data to a 3rd party that is handling your security</li>
+  <li>Stream all the evens into your Security Information and Event Management (SIEM) solution</li>
+  <li>Add your data to Azure Sentinel, since there is no connector yet.</li>
+</ul>
+
+<p>And a few others, just for fun or because you can</p>
+<ul>
+  <li>Draw a world map and show all the unlock and logins in real-time by processing LogonEvents</li>
+  <li>Respond to people that they shouldn’t work during their holidays by using the LogonEvents, ProcessCreation en FileCreationEvents ;)</li>
+</ul>
+
+<p>It is re[mark]able how much data is inside the MDATP product and for now we only scratched the surface. This should give you a good indication of what is possible in real-time with the MDATP streaming API.</p>
+
+<p>Thanks for reading!</p>]]></content><author><name>Mark</name></author><category term="blogs" /><category term="MDATP" /><category term="Threat Intelligence" /><category term="Azure" /><summary type="html"><![CDATA[Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let's dive into the new MDATP Streaming API]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://www.re-mark-able.net/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg" /><media:content medium="image" url="https://www.re-mark-able.net/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>

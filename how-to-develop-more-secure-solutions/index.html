@@ -1,0 +1,545 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1">
+    
+    <title>How to develop more secure solutions without the hassle</title>
+
+    <link rel="shortcut icon" type="image/png" href="/assets/cover.png">
+    <link rel="shortcut icon" sizes="192x192" href="/assets/cover.png">
+    <link rel="apple-touch-icon" href="/assets/cover.png">
+
+    <style>
+        :root {
+            /* accent color */
+            --bf-color: #622aff;
+            /* header */
+            --bf-header-title-size: 1.5rem;
+            --bf-header-title-weight: 700;
+            --bf-header-title-color: #000;
+            --bf-header-title-hover: #622aff;
+            /* logo */
+            --bf-header-logo-width: auto;
+            --bf-header-logo-height: 1.5rem;
+            /* post */
+            --bf-post-width: 43.75rem;
+            /* radius */
+            --bf-radius: .5rem;
+        }
+    </style>
+
+    <!-- site css -->
+    <link rel="stylesheet" href="/assets/main.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+          rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>How to develop more secure solutions without the hassle | Re[mark]able.net - All things .NET an Azure related</title>
+<meta name="generator" content="Jekyll v4.2.2" />
+<meta property="og:title" content="How to develop more secure solutions without the hassle" />
+<meta name="author" content="Mark" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="As developers, we are constantly trying to implement our solutions in the best way possible. Often we ‘forget’ to look for the vulnerabilities we introduce without really thinking about it" />
+<meta property="og:description" content="As developers, we are constantly trying to implement our solutions in the best way possible. Often we ‘forget’ to look for the vulnerabilities we introduce without really thinking about it" />
+<link rel="canonical" href="https://www.re-mark-able.net/how-to-develop-more-secure-solutions/" />
+<meta property="og:url" content="https://www.re-mark-able.net/how-to-develop-more-secure-solutions/" />
+<meta property="og:site_name" content="Re[mark]able.net - All things .NET an Azure related" />
+<meta property="og:image" content="https://www.re-mark-able.net/content/images/2019/01/blog-logo-1.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-04T14:28:29+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:image" content="https://www.re-mark-able.net/content/images/2019/01/blog-logo-1.png" />
+<meta property="twitter:title" content="How to develop more secure solutions without the hassle" />
+<meta name="twitter:site" content="@foppenma" />
+<meta name="twitter:creator" content="@Mark" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Mark"},"dateModified":"2019-01-04T14:28:29+00:00","datePublished":"2019-01-04T14:28:29+00:00","description":"As developers, we are constantly trying to implement our solutions in the best way possible. Often we ‘forget’ to look for the vulnerabilities we introduce without really thinking about it","headline":"How to develop more secure solutions without the hassle","image":"https://www.re-mark-able.net/content/images/2019/01/blog-logo-1.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://www.re-mark-able.net/assets/cover.png"},"name":"Mark"},"url":"https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+<body><header class="header">
+    <div class="container d-md-flex align-items-md-center">
+        <div class="d-flex align-items-center mr-md-auto">
+            <div class="mr-3">
+                <img src="/assets/cover.png" style="height: 50px;" />
+            </div>
+            <section class="header-sign py-4 py-md-0 text-center text-md-left ">
+                <a class="header-title" href="/">Re[mark]able.net</a>
+                <p class="header-desc">All things .NET, Azure and Security related</p>
+            </section>
+        </div>
+
+        <nav class="header-nav d-flex">
+            <ul class="social d-flex ms-2" aria-label="Social network links">
+                <!-- Book reviews coming soon :) -->
+                <!-- <li class="mr-5">
+                    <a class="header-nav-button" style="width: 3.5rem;" href="/books" aria-label="Books">
+                        <div class="d-flex align-items-center">
+                            <i class="ri-book-line"></i><b>Books</b>
+                        </div>
+                    </a>
+                </li>
+                <li class="border-right mr-3">
+                </li> -->
+                <li>
+                    <button type="button" class="social-link-github header-nav-button" data-toggle="modal"
+                        data-target="#searchModal">
+                        <svg aria-hidden="true" focusable="false" width="16" height="16" fill="currentColor" role="img"
+                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path fill="currentColor"
+                                d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z"
+                                class=""></path>
+                        </svg>
+                    </button>
+                </li>
+                <li>
+                    <a class="social-link-github header-nav-button" href="https://github.com/foppenm" target="_blank"
+                        aria-label="Follow on GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="https://twitter.com/foppenma" target="_blank"
+                        aria-label="Follow on Twitter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="https://www.linkedin.com/in/markfoppen"
+                        target="_blank" aria-label="Connect on LinkedIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 200 200">
+                            <defs>
+
+                            </defs>
+                            <rect transform="scale(-1,1)" rx="30.201" ry="30.201" height="199.98" width="200"
+                                y="0.011226" x="-200" fill="currentColor" />
+                            <path opacity="0.7811159"
+                                d="m147.16,8.5612-94.32,0c-24.967,0-45.066,20.263-45.066,45.433v92.02c0.80814,19.647,3.9167,7.2266,9.8337-14.531,6.8768-25.287,29.273-47.388,56.547-63.952,20.817-12.642,44.119-20.715,86.533-21.483,24.054-0.43553,21.931-31.218-13.527-37.487z"
+                                fill="url(#linearGradient3003)" />
+                            <path
+                                d="m63.992,167.85,0-90.884-30.208,0,0,90.884,30.208,0zm-15.1-103.3c10.534,0,17.091-6.9789,17.091-15.7-0.19632-8.9179-6.5566-15.703-16.891-15.703-10.333,0-17.09,6.7852-17.09,15.703,0,8.7216,6.5553,15.7,16.693,15.7h0.19633z"
+                                fill="#FFF" />
+                            <path
+                                d="m80.712,167.85,30.208,0,0-50.754c0-2.7163,0.19632-5.4298,0.99398-7.3715,2.1838-5.4271,7.1542-11.048,15.499-11.048,10.931,0,15.304,8.3343,15.304,20.552v48.621h30.206v-52.112c0-27.916-14.903-40.905-34.778-40.905-16.296,0-23.451,9.1089-27.426,15.313h0.2017v-13.181h-30.208c0.39641,8.528,0,90.884,0,90.884z"
+                                fill="#FFF" />
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="/feed.xml"
+                        target="_blank" aria-label="Subribe with RSS">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <circle cx="6.18" cy="17.82" r="2.18"></circle>
+                            <path
+                                d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="row w-100">
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control py-2 border-right-0 border" type="search" placeholder="Search"
+                                id="search-input">
+                            <span class="input-group-append">
+                                <div class="input-group-text bg-transparent">
+                                    <svg aria-hidden="true" focusable="false" width="16" height="16" fill="currentColor"
+                                        role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                        <path fill="currentColor"
+                                            d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z"
+                                            class=""></path>
+                                    </svg>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="pl-0" id="results-container">
+                    <!-- Search output will be here-->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div><main class="post-detail">
+  <article class="post">
+    <figure class="post-cover">
+      <img
+        class="post-cover-img"
+        src="/content/images/2019/01/blog-logo-1.png"
+        alt="How to develop more secure solutions without the hassle"
+        aria-hidden="true"
+      />
+    </figure>
+
+    <header class="post-header post-container">
+      <h1 class="post-title">How to develop more secure solutions without the hassle</h1>
+      <div class="post-meta d-flex align-items-start">
+        <div class="post-meta-item post-meta-author">
+          <img
+            class="post-meta-author-img d-none d-md-block"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250' width='250' height='250'%3E%3Crect width='250' height='250' fill='%23622aff'%3E%3C/rect%3E%3Ctext x='50%' y='53%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='128px' fill='%23ffffff'%3EM%3C/text%3E%3C/svg%3E"
+            width="32"
+            height="32"
+            alt="Mark"
+          />
+          <div class="post-meta-author-details">
+            <span class="post-meta-label">Written by</span>
+            <a class="post-meta-author-name" href="#">Mark</a>
+          </div>
+        </div>
+        <div class="post-meta-item post-meta-date">
+          <span class="post-meta-label">Published</span>
+          <time class="post-meta-date-time"
+            >Fri, Jan 04, 2019</time
+          >
+        </div>
+        <div class="post-meta-item post-meta-cats">
+          <span class="post-meta-label">Tags</span>
+          <div>
+            <div class="row my-1 no-gutters">
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge badge-pill badge-secondary">Development</span>
+              </div>
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge badge-pill badge-secondary">Security</span>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        <button
+          class="post-meta-btn ml-auto"
+          type="button"
+          data-toggle="modal"
+          data-target="#shareModal"
+          aria-label="Share this post"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-share"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <!-- Show page content-->
+
+    <section class="post-content post-container"><p>As developers, we are constantly trying to implement our solutions in the best way possible. Often we “forget” to look for the vulnerabilities we introduce without really thinking about it. This can happen under pressure of a superior or simply because you can’t know every vulnerability out there.</p>
+
+<p>In order to improve this we want to know what is wrong but (I personally) don’t want it to be enforced on every local build we do.. For this to improve I found 2 solutions that work really well without you being bothered all the time.</p>
+
+<p>There are 2 different kinds of solutions we can use:</p>
+<ul>
+  <li>Live information and tips during your development</li>
+  <li>Vulnerabilities on added dependencies</li>
+</ul>
+
+<h2 id="security-code-scan">Security Code Scan</h2>
+<p>For the first problem, I wanted to be notified during my development in visual studio en visual studio code. This can be done by installing one of the following:</p>
+
+<ul>
+  <li>Visual Studio -&gt; SecurityCodeScan (<strong>preferred!</strong>) and/or DevSkim</li>
+  <li>Visual Studio Code -&gt; DevSkim</li>
+</ul>
+
+<p>In this post, we will mainly be looking into Security Code Scan. In order to use this, you can get it either by installing the visual studio extension <a href="https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScan">Link</a> or by adding it as a nuget on the project you want to monitor. I have added it as an extension and therefore will get vulnerability warnings on every solution that is open.</p>
+
+<p>After installing, make sure to check the “Enable full solution analysis” in Visual Studio &gt; Tools &gt; Text Editor &gt; C# &gt; Advanced, like in the screenshot below.
+<img src="/content/images/2019/01/vs-tools-setting.png" alt="vs-tools-setting" /></p>
+
+<p>By now you will get warnings if something is detected. It can present itself in different ways.</p>
+
+<p><img src="/content/images/2019/01/warning.png" alt="warning" /></p>
+
+<p>You will also be able to fix it most of the time with the quickfix option.</p>
+
+<p><img src="/content/images/2019/01/quickfix.png" alt="quickfix" /></p>
+
+<p>Last but not least, you can also get an overview of all the warnings in the “Error list” view.</p>
+
+<p><img src="/content/images/2019/01/error-list.png" alt="error-list" /></p>
+
+<p>In this view, you also have the ability to open the issue in your browser to get additional information, how to fix it and why this is important. I mean you can always ignore it if you think this is not applicable in the current situation.</p>
+
+<p>Solutions for vulnerabilities can be found at <a href="https://security-code-scan.github.io">Security Code Scan</a> and it wil look like:</p>
+
+<p><img src="/content/images/2019/01/solution-for-issue.png" alt="solution-for-issue" /></p>
+
+<p>As a second solution, you can also use DevSkim which can be found <a href="https://github.com/Microsoft/DevSkim">here</a> but in my opinion, this is less useful and it will produce errors on build time. DevSkim does catch some different possible issues like not secure URLs. Unfortunately, it does not support quick fixes or an explanation of why it is a vulnerability.</p>
+
+<p><img src="/content/images/2019/01/unsecure-url.png" alt="unsecure-url" /></p>
+
+<h2 id="snyk">Snyk</h2>
+<p>After I implemented a solution, it works and I am ready to deploy it there is a possibility to check it for used dependencies vulnerabilities. This can be done by using <a href="https://snyk.io/">Snyk</a> which has a free tier for developers and unlimited tests (runs to check your solution) for public repositories. Keep in mind that for enterprises there are paid options.</p>
+
+<p>First, you need to register a free account. This will give you access to your Dashboard. Now you have two options. You can configure a public repository or use a local (on your machine) project. The public repositories can be configured by going to the “Integrations” page where you can configure a lot of providers.</p>
+
+<p><img src="/content/images/2019/01/snyk-integrations.png" alt="snyk-integrations" /></p>
+
+<p>In this example we are going to use a local project that is not in any repository since the local project is a little more difficult to setup.</p>
+
+<p>So let’s get right to it and install Snyk on your machine. To install Snyk I used npm with the following command</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm install -g snyk
+</code></pre></div></div>
+
+<p>After that you have to authenticate with your account.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>snyk auth
+</code></pre></div></div>
+
+<p>Which will open the browser and you can login in with your Snyk account. Now you can use it to test your solution by going to project folder</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd c:\&lt;your solution folder&gt;
+</code></pre></div></div>
+
+<p>In my case, this was a solution with .NET project for an azure function. This is supported but not in the default way. Normally you can just run “sync test” and it will automatically check for a lot of different variations of package files in your current folder (see <a href="https://snyk.io/docs/using-snyk/">docs</a>). For .NET projects you need to specify the solution file like this</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>snyk test --file=MySolution.sln
+</code></pre></div></div>
+
+<p>In the summary of your test, you can already see if there are vulnerabilities</p>
+
+<p><img src="/content/images/2019/01/snyk-test.png" alt="snyk-test" /></p>
+
+<p>To get it in your dashboard on snyk.io you need to run</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>snyk monitor --file=MySolution.sln
+</code></pre></div></div>
+<p>This will send the data to your Snyk account and you will be able to see it in the dashboard and browse through the found vulnerabilities by severity.</p>
+
+<p>A nice added bonus to this monitoring is that it will keep your packages config and alert you when there are newly found vulnerabilities. This way you will get an email when this happened and you can respond to that. This can be set to check on a daily or weekly base.</p>
+
+<p><img src="/content/images/2019/01/snyk-dashboard.png" alt="snyk-dashboard" /></p>
+
+<h2 id="is-this-usable">Is This Usable?</h2>
+<p>I can only speak for my self but for me, these two steps are easy to implement in local and ci builds and require no hassle to use. An added bonus is that I can use the warnings to improve the solution but I don’t have to. If you want it to take a step further you can always take a look into <a href="https://github.com/Microsoft/BinSkim">BinSkim</a>. This tool can analyze your DLL’s and Executables for know vulnerabilities.</p>
+
+<p>All in all, I think it is really “remarkable” that all this is free to use while it can have real added value to the solutions we make!</p>
+</section><!-- Script from Giscus-->
+<script
+  src="https://giscus.app/client.js"
+  data-repo="foppenm/foppenm.github.io"
+  data-repo-id="MDEwOlJlcG9zaXRvcnkzNTExOTIyODQ="
+  data-category="General"
+  data-category-id="MDE4OkRpc2N1c3Npb25DYXRlZ29yeTMyODA4MTk1"
+  data-mapping="og:title"
+  data-reactions-enabled="1"
+  data-emit-metadata="0"
+  data-input-position="top"
+  data-theme="light"
+  data-lang="en"
+  crossorigin="anonymous"
+  async
+></script>
+<div class="giscus post-content post-container"></div>
+  </article>
+</main>
+
+<div
+  class="modal fade share-modal"
+  id="shareModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Share this post!</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul class="share-modal-list row g-3">
+          <li class="col">
+            <a
+              class="share-modal-link -facebook"
+              href="https://www.facebook.com/sharer/sharer.php?u=https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-facebook share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Facebook</span>
+            </a>
+          </li>
+          <li class="col bft-share-item">
+            <a
+              class="share-modal-link -twitter"
+              href="https://twitter.com/intent/tweet?text=How to develop more secure solutions without the hassle&amp;url=https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-twitter share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Twitter</span>
+            </a>
+          </li>
+          <li class="col bft-share-item">
+            <a
+              class="share-modal-link"
+              href="mailto:?&amp;subject=How to develop more secure solutions without the hassle&amp;cc=&amp;bcc=&amp;body=How to develop more secure solutions without the hassle%0https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-envelope-fill share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Email</span>
+            </a>
+          </li>
+        </ul>
+        <input
+          id="pageShareLink"
+          onclick="copyInput('pageShareLink')"
+          onkeydown="copyInput('pageShareLink')"
+          title="click to copy!"
+          type="text"
+          class="share-modal-input"
+          aria-label="Press enter to copy the page link"
+          value="https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"
+          data-link="https://www.re-mark-able.net/how-to-develop-more-secure-solutions/"
+          readonly=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="container">
+    <section class="footer d-md-flex text-center text-md-left py-4 py-md-5">
+        <p class="mr-3">© 2021 - Re[mark]able.net</p>
+        <p class="ms-md-auto mt-2 mt-md-0">
+            Design by <a href="https://blogifier.net" rel="nofollow" target="_blank"
+                title="Blogifier - 3.0">Blogifier</a>
+            <!-- All credits go the the creators of Blogifier, all the errors, bugs, complains go to me since I editted it to make it work for jekyll-->
+        </p>
+    </section>
+</footer><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js"
+        integrity="sha512-/DXTXr6nQodMUiq+IUJYCt2PPOUjrHJ9wFrqpJ3XkgPNOZVfMok7cRw6CSxyCQxXn6ozlESsSh1/sMCTF1rL/g=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"
+        integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha512-I5TkutApDjnWuX+smLIPZNhw+LhTd8WrQhdCKsxCFRSvhFx2km8ZfEpNIhF9nq04msHhOkE8BMOBj5QE07yhMA=="
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Script to cope share link
+        function copyInput(elm) {
+            var copyText = document.getElementById(elm);
+            var copyTextStore = copyText.dataset.link;
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            copyText.value = "Copied!";
+            copyText.classList.add("copied");
+            setTimeout(function () {
+                copyText.value = copyTextStore;
+                copyText.classList.remove("copied");
+            }, 500);
+        }
+    </script><!-- Simple Jekyl Search -->
+<script src="https://unpkg.com/simple-jekyll-search@latest/dest/simple-jekyll-search.min.js"></script>
+<script>
+    window.simpleJekyllSearch = new SimpleJekyllSearch({
+      searchInput: document.getElementById('search-input'),
+      resultsContainer: document.getElementById('results-container'),
+      json: 'https://www.re-mark-able.net/search.json',
+      searchResultTemplate: `
+                    <div class="card my-3">
+                        <div class="card-body">
+                          <h5 class="card-title"><a href="{url}">{title}</a></h5>
+                          <p class="card-text">{date}</p>
+                          <a class="card-link" href="{url}">{url}</a>
+                        </div>
+                    </div>
+      `,
+      noResultsText: 'No results found',
+      limit: 10,
+      fuzzy: false,
+      exclude: ['Welcome']
+    })
+  </script><!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131017662-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131017662-1');
+</script>
+</body>
+</html>

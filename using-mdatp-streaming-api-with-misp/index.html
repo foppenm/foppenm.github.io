@@ -1,0 +1,579 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1">
+    
+    <title>Using MDATP Streaming API with Misp</title>
+
+    <link rel="shortcut icon" type="image/png" href="/assets/cover.png">
+    <link rel="shortcut icon" sizes="192x192" href="/assets/cover.png">
+    <link rel="apple-touch-icon" href="/assets/cover.png">
+
+    <style>
+        :root {
+            /* accent color */
+            --bf-color: #622aff;
+            /* header */
+            --bf-header-title-size: 1.5rem;
+            --bf-header-title-weight: 700;
+            --bf-header-title-color: #000;
+            --bf-header-title-hover: #622aff;
+            /* logo */
+            --bf-header-logo-width: auto;
+            --bf-header-logo-height: 1.5rem;
+            /* post */
+            --bf-post-width: 43.75rem;
+            /* radius */
+            --bf-radius: .5rem;
+        }
+    </style>
+
+    <!-- site css -->
+    <link rel="stylesheet" href="/assets/main.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+          rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Using MDATP Streaming API with Misp | Re[mark]able.net - All things .NET an Azure related</title>
+<meta name="generator" content="Jekyll v4.2.2" />
+<meta property="og:title" content="Using MDATP Streaming API with Misp" />
+<meta name="author" content="Mark" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let’s dive into the new MDATP Streaming API" />
+<meta property="og:description" content="Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let’s dive into the new MDATP Streaming API" />
+<link rel="canonical" href="https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/" />
+<meta property="og:url" content="https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/" />
+<meta property="og:site_name" content="Re[mark]able.net - All things .NET an Azure related" />
+<meta property="og:image" content="https://www.re-mark-able.net/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-07-23T14:28:29+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:image" content="https://www.re-mark-able.net/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg" />
+<meta property="twitter:title" content="Using MDATP Streaming API with Misp" />
+<meta name="twitter:site" content="@foppenma" />
+<meta name="twitter:creator" content="@Mark" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Mark"},"dateModified":"2019-07-23T14:28:29+00:00","datePublished":"2019-07-23T14:28:29+00:00","description":"Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let’s dive into the new MDATP Streaming API","headline":"Using MDATP Streaming API with Misp","image":"https://www.re-mark-able.net/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://www.re-mark-able.net/assets/cover.png"},"name":"Mark"},"url":"https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+<body><header class="header">
+    <div class="container d-md-flex align-items-md-center">
+        <div class="d-flex align-items-center mr-md-auto">
+            <div class="mr-3">
+                <img src="/assets/cover.png" style="height: 50px;" />
+            </div>
+            <section class="header-sign py-4 py-md-0 text-center text-md-left ">
+                <a class="header-title" href="/">Re[mark]able.net</a>
+                <p class="header-desc">All things .NET, Azure and Security related</p>
+            </section>
+        </div>
+
+        <nav class="header-nav d-flex">
+            <ul class="social d-flex ms-2" aria-label="Social network links">
+                <!-- Book reviews coming soon :) -->
+                <!-- <li class="mr-5">
+                    <a class="header-nav-button" style="width: 3.5rem;" href="/books" aria-label="Books">
+                        <div class="d-flex align-items-center">
+                            <i class="ri-book-line"></i><b>Books</b>
+                        </div>
+                    </a>
+                </li>
+                <li class="border-right mr-3">
+                </li> -->
+                <li>
+                    <button type="button" class="social-link-github header-nav-button" data-toggle="modal"
+                        data-target="#searchModal">
+                        <svg aria-hidden="true" focusable="false" width="16" height="16" fill="currentColor" role="img"
+                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path fill="currentColor"
+                                d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z"
+                                class=""></path>
+                        </svg>
+                    </button>
+                </li>
+                <li>
+                    <a class="social-link-github header-nav-button" href="https://github.com/foppenm" target="_blank"
+                        aria-label="Follow on GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="https://twitter.com/foppenma" target="_blank"
+                        aria-label="Follow on Twitter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="https://www.linkedin.com/in/markfoppen"
+                        target="_blank" aria-label="Connect on LinkedIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 200 200">
+                            <defs>
+
+                            </defs>
+                            <rect transform="scale(-1,1)" rx="30.201" ry="30.201" height="199.98" width="200"
+                                y="0.011226" x="-200" fill="currentColor" />
+                            <path opacity="0.7811159"
+                                d="m147.16,8.5612-94.32,0c-24.967,0-45.066,20.263-45.066,45.433v92.02c0.80814,19.647,3.9167,7.2266,9.8337-14.531,6.8768-25.287,29.273-47.388,56.547-63.952,20.817-12.642,44.119-20.715,86.533-21.483,24.054-0.43553,21.931-31.218-13.527-37.487z"
+                                fill="url(#linearGradient3003)" />
+                            <path
+                                d="m63.992,167.85,0-90.884-30.208,0,0,90.884,30.208,0zm-15.1-103.3c10.534,0,17.091-6.9789,17.091-15.7-0.19632-8.9179-6.5566-15.703-16.891-15.703-10.333,0-17.09,6.7852-17.09,15.703,0,8.7216,6.5553,15.7,16.693,15.7h0.19633z"
+                                fill="#FFF" />
+                            <path
+                                d="m80.712,167.85,30.208,0,0-50.754c0-2.7163,0.19632-5.4298,0.99398-7.3715,2.1838-5.4271,7.1542-11.048,15.499-11.048,10.931,0,15.304,8.3343,15.304,20.552v48.621h30.206v-52.112c0-27.916-14.903-40.905-34.778-40.905-16.296,0-23.451,9.1089-27.426,15.313h0.2017v-13.181h-30.208c0.39641,8.528,0,90.884,0,90.884z"
+                                fill="#FFF" />
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="/feed.xml"
+                        target="_blank" aria-label="Subribe with RSS">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <circle cx="6.18" cy="17.82" r="2.18"></circle>
+                            <path
+                                d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="row w-100">
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control py-2 border-right-0 border" type="search" placeholder="Search"
+                                id="search-input">
+                            <span class="input-group-append">
+                                <div class="input-group-text bg-transparent">
+                                    <svg aria-hidden="true" focusable="false" width="16" height="16" fill="currentColor"
+                                        role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                        <path fill="currentColor"
+                                            d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z"
+                                            class=""></path>
+                                    </svg>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="pl-0" id="results-container">
+                    <!-- Search output will be here-->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div><main class="post-detail">
+  <article class="post">
+    <figure class="post-cover">
+      <img
+        class="post-cover-img"
+        src="/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg"
+        alt="Using MDATP Streaming API with Misp"
+        aria-hidden="true"
+      />
+    </figure>
+
+    <header class="post-header post-container">
+      <h1 class="post-title">Using MDATP Streaming API with Misp</h1>
+      <div class="post-meta d-flex align-items-start">
+        <div class="post-meta-item post-meta-author">
+          <img
+            class="post-meta-author-img d-none d-md-block"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250' width='250' height='250'%3E%3Crect width='250' height='250' fill='%23622aff'%3E%3C/rect%3E%3Ctext x='50%' y='53%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='128px' fill='%23ffffff'%3EM%3C/text%3E%3C/svg%3E"
+            width="32"
+            height="32"
+            alt="Mark"
+          />
+          <div class="post-meta-author-details">
+            <span class="post-meta-label">Written by</span>
+            <a class="post-meta-author-name" href="#">Mark</a>
+          </div>
+        </div>
+        <div class="post-meta-item post-meta-date">
+          <span class="post-meta-label">Published</span>
+          <time class="post-meta-date-time"
+            >Tue, Jul 23, 2019</time
+          >
+        </div>
+        <div class="post-meta-item post-meta-cats">
+          <span class="post-meta-label">Tags</span>
+          <div>
+            <div class="row my-1 no-gutters">
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge badge-pill badge-secondary">MDATP</span>
+              </div>
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge badge-pill badge-secondary">Threat Intelligence</span>
+              </div>
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge badge-pill badge-secondary">Azure</span>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        <button
+          class="post-meta-btn ml-auto"
+          type="button"
+          data-toggle="modal"
+          data-target="#shareModal"
+          aria-label="Share this post"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-share"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <!-- Show page content-->
+
+    <section class="post-content post-container"><p>Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection (MDATP)? It would be great if you can just access all that data through an API. But I really do not want to develop another polling mechanism to pull in all the data. That is where the new MDATP Streaming API comes in which just got enabled for public preview.</p>
+
+<p>In this post, you will see how easy it is to configure the new Streaming API and how you can get access to the data. You will see how the new API can be attached to Azure Storage and Azure Event Hub.</p>
+
+<p>Once we receive all the data we can check file hashes in a 3rd party threat intelligence provider like MISP. First, let’s configure the MDATP streaming API.</p>
+
+<h2 id="configure-mdatp-streaming">Configure MDATP Streaming</h2>
+<p>We start by going to the MDATP portal <a href="https://securitycenter.windows.com">here</a> where you will see the default dashboard. To start configuring you need to go to the Data Export Settings page.</p>
+
+<p><img src="/content/images/2019/07/DataExportSettings.gif" alt="DataExportSettings" /></p>
+
+<p>In this page, you can add a total of 5 streaming connections. At the moment there are two types of Azure resources you can connect to:</p>
+<ul>
+  <li>Azure Storage</li>
+  <li>Event Hub</li>
+</ul>
+
+<p>If you choose for the Azure Storage option then the MDATP stream will save all the events in a *.json file as blobs.</p>
+
+<p>On each connection you can choose between 9 types of events:</p>
+<ul>
+  <li>AlertEvents</li>
+  <li>MachineInfo</li>
+  <li>MachineNetworkInfo</li>
+  <li>ProcessCreationEvents</li>
+  <li>NetworkCommunicationEvents</li>
+  <li>FileCreationEvents</li>
+  <li>RegistryEvents</li>
+  <li>LogonEvents</li>
+  <li>ImageLoadEvents</li>
+  <li>MiscEvents</li>
+</ul>
+
+<p>For now, I am only going to focus on the connection between an Event Hub and MDATP for the <strong>FileCreationEvents</strong>. If you want to make sure that you catch all of the files and processes on every device you should also add the <strong>ProcessCreationEvents</strong>.</p>
+
+<p>When you add a new connection you will get all the options I just mentioned. You can make a choice here and configure the connection how you like. I am going to configure it for an event hub to only receive file creation events from MDATP.</p>
+
+<p><img src="/content/images/2019/07/AddEventHub.gif" alt="AddEventHub" /></p>
+
+<p>Now that the Event hub is configured the data should start coming in and it will look something like this</p>
+
+<p><img src="/content/images/2019/07/StreamingData.png" alt="StreamingData" /></p>
+
+<p><strong>Tip</strong>: Only enable the types of events you really want to have since the volume of messages can be very high. This is not an issue for Event Hub but could be very costly if you connect it to a logic app where you pay per execution.</p>
+
+<p>For example ‘NetworkCommunicationEvents’ logs every connection made on every machine. I had to learn the hard way by wasting my entire worth of monthly Azure credits ($150) in 2 days because it was connected to a Logic app :| …
+<img src="/content/images/2019/07/HighPeak.png" alt="HighPeak" /></p>
+
+<p>As you can see below most of the costs are in the connection and the executed actions for the logic app and not in the Event Hub. So be cautious as to what you connect to the Event Hub. The high event hub costs are due to the enabled ‘Capture’ feature and the standard tier. Not because of the number of events.
+<img src="/content/images/2019/07/Costs.png" alt="Costs" /></p>
+
+<p>This however triggered me to look into the actual costs of using the MDATP streaming API with Event Hub. To do that we first need to know how many events are sent. I created a new Event Hub namespace, connected it to MDATP streaming API and selected all available events. The next 24h I let it run to capture all the events. To give some context to this I have counted all the different types of events and the number of machines in my tenant.</p>
+
+<p>NetworkCommunicationEvents: <strong>95,070</strong>
+ImageLoadEvents: <strong>23,091</strong>
+MiscEvents: <strong>57,444</strong>
+ProcessCreationEvents: <strong>24,795</strong>
+RegistryEvents: <strong>49,191</strong>
+MachineInfo: <strong>2,213</strong>
+MachineNetworkInfo: <strong>10,712</strong>
+FileCreationEvents: <strong>39,487</strong>
+LogonEvents: <strong>1,982</strong>
+AlertEvents: <strong>4</strong></p>
+
+<p>This leaves us with a total of <strong>303.989</strong> events on <strong>83</strong> different machines. The average size of one event is ~2.47 kilo byte and one machine gives ~3,662 events per day. On monthly costs, this would mean you have ~9 million events which will cost you around $0.25.</p>
+
+<h2 id="consuming-eventhub-with-a-logic-app">Consuming Eventhub with a Logic app</h2>
+
+<p>Sometimes there are use cases that require a third-party threat intelligence system to check for malware. For example, to detect Android APK’s with malware in them. A good example you can see <a href="https://mobile.twitter.com/Maler360/status/1138695308462870528">here</a>. For this example, we will be using MISP also know as a Malware Information Sharing Platform and Threat Sharing. This is a free and community-driven threat intelligence platform. In this post, we will not cover how to set this up but you can see how this can be done on Kali Linux <a href="https://www.inspark.nl/misp-threat-intelligence-azure-sentinel/">here</a></p>
+
+<p>Here is a list of goals we want to achieve:</p>
+<ul>
+  <li>Read the events from the event hub</li>
+  <li>Check the file hashes against Misp</li>
+  <li>Add the indicator to MDATP</li>
+</ul>
+
+<p>Do note that this is an implementation in the most basic form you can think off without any error handling or what so ever. Let’s take a look at the Logic App overview
+<img src="/content/images/2019/07/LogicAppOverview.png" alt="LogicAppOverview" /></p>
+
+<p>First we receive the events through the Event Hub Logic App trigger which is connected to the MDATPStream hub as shown before. When you save the Logic App with only the trigger you will get a response like this:</p>
+
+<p><img src="/content/images/2019/07/LogicAppEventHubMessage.png" alt="LogicAppEventHubMessage" /></p>
+
+<p>Now that we receive events we can call the Misp API with the following parameters to check if that file is known as a possible indicator of compromise (IoC).</p>
+
+<p><img src="/content/images/2019/07/LogicAppCallMisp-1.png" alt="LogicAppCallMisp-1" /></p>
+
+<p>After this, we parse the response and check if there are any IoC’s returned from Misp. If that is the case we have found a match. At this point, it is up to you what you do with this detection. The first thing you could do i.e. is, Posting an Alert directly to MDATP with the Windows Defender Advanced Threat Protection (WDATP) logic app connector.</p>
+
+<p>The way to achieve alerting of the found IoC is through creating an alert with the WDATP connector. You can do this by adding it to your logic app and connect it with a global admin account.</p>
+
+<p><img src="/content/images/2019/07/AlertWDATP.png" alt="AlertWDATP" /></p>
+
+<p>To create an alert, you need to set the machine id which can be found in the event hub message. For the other fields, you can set them as you like. To give meaning to the alert, you should call the Misp once again and retrieve the event from Misp. An event in Misp gives context to the found IoC and therefore also contains fields like title, severity, comments, etc.</p>
+
+<h2 id="possibilities">Possibilities?</h2>
+<p>Although this post only describes one possible implementation of the MDATP streaming API there a lot more possibilities. To name a few:</p>
+
+<ul>
+  <li>Save the MDATP data to a separate storage to retain it indefinitely</li>
+  <li>Instead of polling your MDATP alerts from the graph API you can now respond to the alerts real-time</li>
+  <li>Monitor network communication real-time</li>
+  <li>Stream your data to a 3rd party that is handling your security</li>
+  <li>Stream all the evens into your Security Information and Event Management (SIEM) solution</li>
+  <li>Add your data to Azure Sentinel, since there is no connector yet.</li>
+</ul>
+
+<p>And a few others, just for fun or because you can</p>
+<ul>
+  <li>Draw a world map and show all the unlock and logins in real-time by processing LogonEvents</li>
+  <li>Respond to people that they shouldn’t work during their holidays by using the LogonEvents, ProcessCreation en FileCreationEvents ;)</li>
+</ul>
+
+<p>It is re[mark]able how much data is inside the MDATP product and for now we only scratched the surface. This should give you a good indication of what is possible in real-time with the MDATP streaming API.</p>
+
+<p>Thanks for reading!</p>
+</section><!-- Script from Giscus-->
+<script
+  src="https://giscus.app/client.js"
+  data-repo="foppenm/foppenm.github.io"
+  data-repo-id="MDEwOlJlcG9zaXRvcnkzNTExOTIyODQ="
+  data-category="General"
+  data-category-id="MDE4OkRpc2N1c3Npb25DYXRlZ29yeTMyODA4MTk1"
+  data-mapping="og:title"
+  data-reactions-enabled="1"
+  data-emit-metadata="0"
+  data-input-position="top"
+  data-theme="light"
+  data-lang="en"
+  crossorigin="anonymous"
+  async
+></script>
+<div class="giscus post-content post-container"></div>
+  </article>
+</main>
+
+<div
+  class="modal fade share-modal"
+  id="shareModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Share this post!</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul class="share-modal-list row g-3">
+          <li class="col">
+            <a
+              class="share-modal-link -facebook"
+              href="https://www.facebook.com/sharer/sharer.php?u=https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-facebook share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Facebook</span>
+            </a>
+          </li>
+          <li class="col bft-share-item">
+            <a
+              class="share-modal-link -twitter"
+              href="https://twitter.com/intent/tweet?text=Using MDATP Streaming API with Misp&amp;url=https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-twitter share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Twitter</span>
+            </a>
+          </li>
+          <li class="col bft-share-item">
+            <a
+              class="share-modal-link"
+              href="mailto:?&amp;subject=Using MDATP Streaming API with Misp&amp;cc=&amp;bcc=&amp;body=Using MDATP Streaming API with Misp%0https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-envelope-fill share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Email</span>
+            </a>
+          </li>
+        </ul>
+        <input
+          id="pageShareLink"
+          onclick="copyInput('pageShareLink')"
+          onkeydown="copyInput('pageShareLink')"
+          title="click to copy!"
+          type="text"
+          class="share-modal-input"
+          aria-label="Press enter to copy the page link"
+          value="https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"
+          data-link="https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/"
+          readonly=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="container">
+    <section class="footer d-md-flex text-center text-md-left py-4 py-md-5">
+        <p class="mr-3">© 2021 - Re[mark]able.net</p>
+        <p class="ms-md-auto mt-2 mt-md-0">
+            Design by <a href="https://blogifier.net" rel="nofollow" target="_blank"
+                title="Blogifier - 3.0">Blogifier</a>
+            <!-- All credits go the the creators of Blogifier, all the errors, bugs, complains go to me since I editted it to make it work for jekyll-->
+        </p>
+    </section>
+</footer><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js"
+        integrity="sha512-/DXTXr6nQodMUiq+IUJYCt2PPOUjrHJ9wFrqpJ3XkgPNOZVfMok7cRw6CSxyCQxXn6ozlESsSh1/sMCTF1rL/g=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"
+        integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha512-I5TkutApDjnWuX+smLIPZNhw+LhTd8WrQhdCKsxCFRSvhFx2km8ZfEpNIhF9nq04msHhOkE8BMOBj5QE07yhMA=="
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Script to cope share link
+        function copyInput(elm) {
+            var copyText = document.getElementById(elm);
+            var copyTextStore = copyText.dataset.link;
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            copyText.value = "Copied!";
+            copyText.classList.add("copied");
+            setTimeout(function () {
+                copyText.value = copyTextStore;
+                copyText.classList.remove("copied");
+            }, 500);
+        }
+    </script><!-- Simple Jekyl Search -->
+<script src="https://unpkg.com/simple-jekyll-search@latest/dest/simple-jekyll-search.min.js"></script>
+<script>
+    window.simpleJekyllSearch = new SimpleJekyllSearch({
+      searchInput: document.getElementById('search-input'),
+      resultsContainer: document.getElementById('results-container'),
+      json: 'https://www.re-mark-able.net/search.json',
+      searchResultTemplate: `
+                    <div class="card my-3">
+                        <div class="card-body">
+                          <h5 class="card-title"><a href="{url}">{title}</a></h5>
+                          <p class="card-text">{date}</p>
+                          <a class="card-link" href="{url}">{url}</a>
+                        </div>
+                    </div>
+      `,
+      noResultsText: 'No results found',
+      limit: 10,
+      fuzzy: false,
+      exclude: ['Welcome']
+    })
+  </script><!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131017662-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131017662-1');
+</script>
+</body>
+</html>
