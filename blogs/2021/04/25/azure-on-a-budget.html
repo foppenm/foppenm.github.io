@@ -1,0 +1,643 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1">
+    
+    <title>Azure on a budget, forecasting your spending</title>
+
+    <link rel="shortcut icon" type="image/png" href="/assets/cover.png">
+    <link rel="shortcut icon" sizes="192x192" href="/assets/cover.png">
+    <link rel="apple-touch-icon" href="/assets/cover.png">
+
+    <style>
+        :root {
+            /* accent color */
+            --bf-color: #622aff;
+            /* header */
+            --bf-header-title-size: 1.5rem;
+            --bf-header-title-weight: 700;
+            --bf-header-title-color: #000;
+            --bf-header-title-hover: #622aff;
+            /* logo */
+            --bf-header-logo-width: auto;
+            --bf-header-logo-height: 1.5rem;
+            /* post */
+            --bf-post-width: 43.75rem;
+            /* radius */
+            --bf-radius: .5rem;
+        }
+    </style>
+
+    <!-- site css -->
+    <link rel="stylesheet" href="/assets/main.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+          rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Microsoft Clarity moved to _includes/analytics.html (consent-gated).
+         It previously loaded here unconditionally. -->
+
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Azure on a budget, forecasting your spending | Re[mark]able.net - All things .NET an Azure related</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Azure on a budget, forecasting your spending" />
+<meta name="author" content="Mark" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Using azure budgets to taking control of your spending" />
+<meta name="twitter:description" property="og:description" content="Using azure budgets to taking control of your spending" />
+<link rel="canonical" href="https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html" />
+<meta property="og:url" content="https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html" />
+<meta property="og:site_name" content="Re[mark]able.net - All things .NET an Azure related" />
+<meta property="og:image" content="https://www.re-mark-able.net/assets/blogs/2021-04-25/cover.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-04-25T16:28:29+02:00" />
+<meta property="article:modified_time" content="2021-04-25T16:28:29+02:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://www.re-mark-able.net/assets/blogs/2021-04-25/cover.png" />
+<meta name="twitter:title" content="Azure on a budget, forecasting your spending" />
+<meta name="twitter:site" content="@foppenma" />
+<meta name="twitter:creator" content="@Mark" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Mark"},"dateModified":"2021-04-25T16:28:29+02:00","datePublished":"2021-04-25T16:28:29+02:00","description":"Using azure budgets to taking control of your spending","headline":"Azure on a budget, forecasting your spending","image":"https://www.re-mark-able.net/assets/blogs/2021-04-25/cover.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://www.re-mark-able.net/assets/cover.png"},"name":"Mark"},"url":"https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+<body><header class="header">
+    <div class="container d-md-flex align-items-md-center">
+        <div class="d-flex align-items-center me-md-auto">
+            <div class="me-3">
+                <img src="/assets/cover.png" style="height: 50px;" />
+            </div>
+            <section class="header-sign py-4 py-md-0 text-center text-md-start ">
+                <a class="header-title" href="/">Re[mark]able.net</a>
+                <p class="header-desc">My journey with .NET, Azure and Security related bits</p>
+            </section>
+        </div>
+
+        <nav class="header-nav d-flex">
+            <ul class="social d-flex ms-2" aria-label="Site navigation">
+                <li class="me-2">
+                    <a class="header-nav-link header-nav-about" href="/about/">
+                        <img src="/assets/general/mark-avatar.png" alt="" width="28" height="28" class="header-nav-avatar" />
+                        <span>About</span>
+                    </a>
+                </li>
+                <li class="border-end me-2"></li>
+                <!-- Book reviews coming soon :) -->
+                <!-- <li class="me-5">
+                    <a class="header-nav-button" style="width: 3.5rem;" href="/books" aria-label="Books">
+                        <div class="d-flex align-items-center">
+                            <i class="ri-book-line"></i><b>Books</b>
+                        </div>
+                    </a>
+                </li>
+                <li class="border-end me-3">
+                </li> -->
+                <li>
+                    <button type="button" class="social-link-github header-nav-button" data-bs-toggle="modal"
+                        data-bs-target="#searchModal">
+                        <svg aria-hidden="true" focusable="false" width="16" height="16" fill="currentColor" role="img"
+                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path fill="currentColor"
+                                d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z"
+                                class=""></path>
+                        </svg>
+                    </button>
+                </li>
+                <li>
+                    <a class="social-link-github header-nav-button" href="https://github.com/foppenm" target="_blank"
+                        aria-label="Follow on GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="https://twitter.com/foppenma" target="_blank"
+                        aria-label="Follow on Twitter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="https://www.linkedin.com/in/markfoppen"
+                        target="_blank" aria-label="Connect on LinkedIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 200 200">
+                            <defs>
+
+                            </defs>
+                            <rect transform="scale(-1,1)" rx="30.201" ry="30.201" height="199.98" width="200"
+                                y="0.011226" x="-200" fill="currentColor" />
+                            <path opacity="0.7811159"
+                                d="m147.16,8.5612-94.32,0c-24.967,0-45.066,20.263-45.066,45.433v92.02c0.80814,19.647,3.9167,7.2266,9.8337-14.531,6.8768-25.287,29.273-47.388,56.547-63.952,20.817-12.642,44.119-20.715,86.533-21.483,24.054-0.43553,21.931-31.218-13.527-37.487z"
+                                fill="url(#linearGradient3003)" />
+                            <path
+                                d="m63.992,167.85,0-90.884-30.208,0,0,90.884,30.208,0zm-15.1-103.3c10.534,0,17.091-6.9789,17.091-15.7-0.19632-8.9179-6.5566-15.703-16.891-15.703-10.333,0-17.09,6.7852-17.09,15.703,0,8.7216,6.5553,15.7,16.693,15.7h0.19633z"
+                                fill="#FFF" />
+                            <path
+                                d="m80.712,167.85,30.208,0,0-50.754c0-2.7163,0.19632-5.4298,0.99398-7.3715,2.1838-5.4271,7.1542-11.048,15.499-11.048,10.931,0,15.304,8.3343,15.304,20.552v48.621h30.206v-52.112c0-27.916-14.903-40.905-34.778-40.905-16.296,0-23.451,9.1089-27.426,15.313h0.2017v-13.181h-30.208c0.39641,8.528,0,90.884,0,90.884z"
+                                fill="#FFF" />
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="social-link-twitter header-nav-button" href="/feed.xml"
+                        target="_blank" aria-label="Subribe with RSS">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <circle cx="6.18" cy="17.82" r="2.18"></circle>
+                            <path
+                                d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="row w-100">
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control" type="search" placeholder="Search" id="search-input" autocomplete="off">
+                            <span class="input-group-text bg-transparent">
+                                <svg aria-hidden="true" focusable="false" width="16" height="16" fill="currentColor" role="img"
+                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                    <path fill="currentColor"
+                                        d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="ps-0" id="results-container">
+                    <!-- Search output will be here-->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div><script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Azure on a budget, forecasting your spending",
+  "image": "https://www.re-mark-able.net/assets/blogs/2021-04-25/cover.png",
+  "datePublished": "2021-04-25T16:28:29+02:00",
+  "dateModified": "2021-04-25T16:28:29+02:00",
+  "author": {
+    "@type": "Person",
+    "name": "Mark",
+    "url": "https://www.re-mark-able.net/about/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Re[mark]able.net - All things .NET an Azure related",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.re-mark-able.net/assets/cover.png"
+    }
+  },
+  "description": "Using azure budgets to taking control of your spending",
+  "mainEntityOfPage": "https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html",
+  "keywords": "Azure, Cost, Budgets"
+}
+</script>
+
+<main class="post-detail">
+  <article class="post">
+    <figure class="post-cover">
+      <img
+        class="post-cover-img"
+        src="/assets/blogs/2021-04-25/cover.png"
+        alt="Azure on a budget, forecasting your spending"
+        aria-hidden="true"
+      />
+    </figure>
+
+    <header class="post-header post-container">
+      <h1 class="post-title">Azure on a budget, forecasting your spending</h1>
+      <div class="post-meta d-flex align-items-start">
+        <div class="post-meta-item post-meta-author">
+          <img
+            class="post-meta-author-img d-none d-md-block"
+            src="https://www.re-mark-able.net/assets/general/author.JPG"
+            width="32"
+            height="32"
+            alt="Mark"
+          />
+          <div class="post-meta-author-details">
+            <span class="post-meta-label">Written by</span>
+            <a class="post-meta-author-name" href="#">Mark</a>
+          </div>
+        </div>
+        <div class="post-meta-item post-meta-date">
+          <span class="post-meta-label">Published</span>
+          <time class="post-meta-date-time"
+            >Sun, Apr 25, 2021</time
+          >
+        </div>
+        <div class="post-meta-item post-meta-cats">
+          <span class="post-meta-label">Tags</span>
+          <div>
+            <div class="row my-1 g-0">
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge rounded-pill bg-secondary">Azure</span>
+              </div>
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge rounded-pill bg-secondary">Cost</span>
+              </div>
+              
+              <div class="col mb-1 mx-1">
+                <span class="badge rounded-pill bg-secondary">Budgets</span>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        <button
+          class="post-meta-btn ms-auto"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#shareModal"
+          aria-label="Share this post"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-share"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <!-- Show page content-->
+
+    <section class="post-content post-container"><p>When developing software and deploying it to Microsoft Azure you will most likely encounter some form of cost management. Also questions on: What is this going to cost me or how much is this every month? Let’s look into Azure Cost analysis and Budgets.</p>
+
+<h2 id="calculating-your-cost">Calculating your cost</h2>
+<p>For every Azure resource, there is a pricing calculator, which you can find <a href="https://azure.microsoft.com/en-us/pricing/calculator">here</a>. You can make calculations for the resource types you want. Let take for example the Application Gateway and assume there is a Products API that returns some product information in JSON. I am going to use the Application Gateway to access the API within a VNET. The usage with the current API is 1.000 users which generate 30.000 API calls per month. Let’s put that into the pricing calculator</p>
+
+<p><img src="/assets/blogs/2021-04-25/appgatewaypricing.png" alt="appgatewaypricing" /></p>
+
+<p>Probably not the only one here but I have actually no clue how much Data processing or Outbound data transfer that is because it has never mattered before. Although the API is returning JSON there is some uncertainty. Since the costs are very low per GB I am taking the gamble and setting it up. Let’s see what the costs are after a week of usage.</p>
+
+<h2 id="cost-analysis">Cost analysis</h2>
+<p>For every resource group within Azure, you can get a Cost analysis. This also includes a forecast of the current month. You can find it by going to a resource group and scroll down in the left menu (like in the screenshot below). Here you will have an overview of the current cost (dark green) and the forecasting (light green).</p>
+
+<p><img src="/assets/blogs/2021-04-25/resourcegroupcost.png" alt="resourcegroupcost" /></p>
+
+<p>Now that you know where to find this cost is must state a small fact: This does not work for CSP subscriptions, these costs are hidden at the time of writing. As you can see in the previous image there was already a Budget set on this resource group. The last thing I want to do with my time is to look at the cost of Azure all day.</p>
+
+<h2 id="budgets">Budgets</h2>
+<p>In the same menu on the left, you will find budgets. Budgets lets you set an alert on a resource group or a specific resource within that group. This allows you to react to overspending or even when the forecast is indicating that you will exceed your budget at the end of the month.</p>
+
+<p>By creating a budget you can set your desired budget details like the renewal period and the budget amount. Just as important is the budget scoping. Here you can set filters on what resources you want to be included in the budget. By default, it will take the entire resource group. When you just created the resource group and the resources the forecast will be empty for a few hours.</p>
+
+<p><img src="/assets/blogs/2021-04-25/createbudget.png" alt="resourcegroupcost" /></p>
+
+<p>You can set the alert conditions to the actual cost or the forecasted cost.</p>
+
+<p><img src="/assets/blogs/2021-04-25/alerttype.png" alt="resourcegroupcost" /></p>
+
+<p>After setting your alert conditions you have the option to set an action group. These are the same action groups you can set on Azure alerts and alerts on Log Analytics. Within an account group, you can also trigger Azure Logic apps for example. This enables you to alter your resources when certain budgets are exceeding the limits.</p>
+
+<p><img src="/assets/blogs/2021-04-25/actiongroup.png" alt="resourcegroupcost" /></p>
+
+<p>Nou that we have saved everything the Azure portal will also show you the progress of that budget.</p>
+
+<p><img src="/assets/blogs/2021-04-25/forecast.png" alt="resourcegroupcost" /></p>
+
+<p>This is all for now, if you have any questions feel free to post a message in the discussion on GitHub <a href="https://github.com/foppenm/foppenm.github.io/discussions/7">here</a>. Thanks for reading!</p>
+</section><!-- Script from Giscus-->
+<script src="https://giscus.app/client.js"
+        data-repo="foppenm/foppenm.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkzNTExOTIyODQ="
+        data-category="General"
+        data-category-id="MDE4OkRpc2N1c3Npb25DYXRlZ29yeTMyODA4MTk0"
+        data-mapping="title"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+<div class="giscus post-content post-container"></div>
+  </article>
+</main>
+
+<div
+  class="modal fade share-modal"
+  id="shareModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Share this post!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="share-modal-list row g-3">
+          <li class="col">
+            <a
+              class="share-modal-link -facebook"
+              href="https://www.facebook.com/sharer/sharer.php?u=https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-facebook share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Facebook</span>
+            </a>
+          </li>
+          <li class="col bft-share-item">
+            <a
+              class="share-modal-link -twitter"
+              href="https://twitter.com/intent/tweet?text=Azure on a budget, forecasting your spending&amp;url=https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-twitter share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Twitter</span>
+            </a>
+          </li>
+          <li class="col bft-share-item">
+            <a
+              class="share-modal-link"
+              href="mailto:?&amp;subject=Azure on a budget, forecasting your spending&amp;cc=&amp;bcc=&amp;body=Azure on a budget, forecasting your spending%0https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-envelope-fill share-modal-link-icon"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"
+                ></path>
+              </svg>
+              <span class="share-modal-link-label">Email</span>
+            </a>
+          </li>
+        </ul>
+        <input
+          id="pageShareLink"
+          onclick="copyInput('pageShareLink')"
+          onkeydown="copyInput('pageShareLink')"
+          title="click to copy!"
+          type="text"
+          class="share-modal-input"
+          aria-label="Press enter to copy the page link"
+          value="https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"
+          data-link="https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html"
+          readonly=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="container">
+    <section class="footer d-md-flex text-center text-md-start py-4 py-md-5">
+        <p class="me-3">© 2026 - Re[mark]able.net</p>
+    </section>
+</footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+
+    <script>
+        // Script to cope share link
+        function copyInput(elm) {
+            var copyText = document.getElementById(elm);
+            var copyTextStore = copyText.dataset.link;
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            copyText.value = "Copied!";
+            copyText.classList.add("copied");
+            setTimeout(function () {
+                copyText.value = copyTextStore;
+                copyText.classList.remove("copied");
+            }, 500);
+        }
+    </script><!-- Simple Jekyll Search -->
+<script src="https://cdn.jsdelivr.net/npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js"></script>
+<script>
+  (function () {
+    var input = document.getElementById('search-input');
+    var resultsContainer = document.getElementById('results-container');
+    if (!input || !resultsContainer) return;
+
+    window.simpleJekyllSearch = new SimpleJekyllSearch({
+      searchInput: input,
+      resultsContainer: resultsContainer,
+      json: 'https://www.re-mark-able.net/search.json',
+      searchResultTemplate:
+        '<li class="search-result-item">' +
+          '<a class="search-result" href="{url}">' +
+            '<h5 class="search-result-title">{title}</h5>' +
+            '<p class="search-result-desc">{description}</p>' +
+            '<p class="search-result-meta"><time>{date}</time>{tagsHtml}</p>' +
+          '</a>' +
+        '</li>',
+      noResultsText:
+        '<li class="search-empty">' +
+          '<p>No results found.</p>' +
+          '<p class="search-empty-hint">Try a different keyword or browse the <a href="/">latest posts</a>.</p>' +
+        '</li>',
+      limit: 10,
+      fuzzy: false,
+      exclude: ['Welcome']
+    });
+
+    // Keyboard UX
+    var modalEl = document.getElementById('searchModal');
+    if (modalEl) {
+      modalEl.addEventListener('shown.bs.modal', function () { input.focus(); });
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        var first = resultsContainer.querySelector('a.search-result');
+        if (first) { e.preventDefault(); window.location.href = first.getAttribute('href'); }
+      }
+    });
+  })();
+</script>
+<!-- Analytics + consent gating.
+     Nothing below loads until the visitor accepts via the banner. Choice is
+     stored in localStorage ("remarkable.cookieConsent"); clearing it re-shows
+     the banner. Gated: Google Analytics, Microsoft Clarity, PostHog (EU).
+     (These previously loaded unconditionally here and in _layouts/default.html;
+     now centralised and consent-gated.) -->
+<script type="text/javascript">
+(function () {
+  var STORAGE_KEY = "remarkable.cookieConsent";
+  var GA_ID = "UA-131017662-1";
+  var CLARITY_ID = "nz65arrudc";
+  var POSTHOG_TOKEN = "phc_oveb95tyYzPmsXRumTaTKgiGWeaoynkkY2MzGJtJ9mz7"; // Re-mark-able.net (190729)
+  var POSTHOG_HOST = "https://eu.i.posthog.com";
+
+  var started = false;
+
+  function loadGA() {
+    var s = document.createElement("script");
+    s.async = 1;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag("js", new Date());
+    gtag("config", GA_ID, { anonymize_ip: true });
+  }
+
+  function loadClarity() {
+    (function (c, l, a, r, i, t, y) {
+      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+      t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+      y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+    })(window, document, "clarity", "script", CLARITY_ID);
+  }
+
+  function loadPostHog() {
+    !function (t, e) {
+      var o, n, p, r;
+      e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) {
+        function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]); t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))); }; }
+        (p = t.createElement("script")).type = "text/javascript", p.crossOrigin = "anonymous", p.async = !0,
+        p.src = s.api_host.replace(".i.posthog.com", "-assets.i.posthog.com") + "/static/array.js",
+        (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r);
+        var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [],
+        u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e; },
+        u.people.toString = function () { return u.toString(1) + ".people (stub)"; },
+        o = "init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageViewId".split(" "), n = 0; n < o.length; n++) g(u, o[n]);
+        e._i.push([i, s, a]);
+      }, e.__SV = 1);
+    }(document, window.posthog || []);
+    window.posthog.init(POSTHOG_TOKEN, {
+      api_host: POSTHOG_HOST,
+      person_profiles: "identified_only",
+      capture_pageview: true,
+      capture_pageleave: true,
+      capture_performance: { web_vitals: true },
+      respect_dnt: true,
+      disable_session_recording: true,
+    });
+  }
+
+  function startAll() {
+    if (started) return;
+    started = true;
+    try { loadGA(); } catch (e) {}
+    try { loadClarity(); } catch (e) {}
+    try { loadPostHog(); } catch (e) {}
+  }
+
+  function decision() {
+    try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+  }
+  function persist(v) { try { localStorage.setItem(STORAGE_KEY, v); } catch (e) {} }
+
+  function buildBanner() {
+    var wrap = document.createElement("div");
+    wrap.id = "cookie-banner";
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-label", "Cookie consent");
+    wrap.style.cssText = "position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:9999;max-width:42rem;margin:0 auto;background:#1d1f27;color:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:1.1rem 1.3rem;font-family:system-ui,-apple-system,sans-serif;font-size:.93rem;line-height:1.5;";
+    var p = document.createElement("p");
+    p.style.margin = "0 0 .8rem 0";
+    p.appendChild(document.createTextNode("We use analytics cookies to understand how visitors use this blog and to improve it. Nothing non-essential loads until you accept. See our "));
+    var a = document.createElement("a");
+    a.href = "/privacy/"; a.textContent = "Privacy policy"; a.style.cssText = "color:#6cd4d9;text-decoration:underline;";
+    p.appendChild(a); p.appendChild(document.createTextNode("."));
+    wrap.appendChild(p);
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;";
+    function btn(label, primary) {
+      var b = document.createElement("button"); b.type = "button"; b.textContent = label;
+      b.style.cssText = "padding:.5rem 1.1rem;border-radius:9999px;font-weight:600;cursor:pointer;font-size:.88rem;" +
+        (primary ? "background:#6cd4d9;color:#0f1115;border:0;" : "background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);");
+      return b;
+    }
+    var no = btn("Decline", false), yes = btn("Accept", true);
+    no.addEventListener("click", function () { persist("declined"); wrap.remove(); });
+    yes.addEventListener("click", function () { persist("accepted"); wrap.remove(); startAll(); });
+    row.appendChild(no); row.appendChild(yes); wrap.appendChild(row);
+    return wrap;
+  }
+
+  function showBannerIfNeeded() {
+    if (decision() !== null) return;
+    if (document.body) document.body.appendChild(buildBanner());
+  }
+
+  if (decision() === "accepted") {
+    startAll();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", showBannerIfNeeded);
+  } else {
+    showBannerIfNeeded();
+  }
+})();
+</script>
+<!-- end analytics -->
+</body>
+</html>
