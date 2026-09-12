@@ -1,0 +1,179 @@
+[
+  
+    {
+      "title"    : "Expose your localhost to Claude and ChatGPT with one line: tapinto.dev",
+      "category" : "",
+      "tags"     : "Developer Experience, MCP, Claude, ChatGPT, Tunnels",
+      "tagsHtml" : "<span class='search-result-tag'>Developer Experience</span><span class='search-result-tag'>MCP</span><span class='search-result-tag'>Claude</span><span class='search-result-tag'>ChatGPT</span><span class='search-result-tag'>Tunnels</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2026/05/24/tapinto-localhost-tunnels.html",
+      "date"     : "May 24, 2026",
+      "image"    : "/assets/blogs/2026-05-24/tapinto-cover.png",
+      "description":"tapinto.dev opens a public HTTPS URL onto your local site or MCP server in a single line from Claude Code or ChatGPT. Great for mobile testing, MCP development, and webhook work."
+    } ,
+  
+    {
+      "title"    : "What is .NET Aspire?",
+      "category" : "",
+      "tags"     : ".NET, Aspire",
+      "tagsHtml" : "<span class='search-result-tag'>.NET</span><span class='search-result-tag'>Aspire</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2024/04/30/what-is-aspire.html",
+      "date"     : "Apr 30, 2024",
+      "image"    : "/assets/blogs/2024-04-30/aspire.webp",
+      "description":"What is Aspire and why you should use it with your .NET projects? Using aspire to supercharge your local development and enable out-of-the-box OpenTelemetry. Get rid of docker compose for local dev with distributed systems"
+    } ,
+  
+    {
+      "title"    : "How to use middleware with Azure Functions",
+      "category" : "",
+      "tags"     : "Azure, Azure Functions, Middleware, .NET 5",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>Azure Functions</span><span class='search-result-tag'>Middleware</span><span class='search-result-tag'>.NET 5</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/05/09/azure-functions-middleware.html",
+      "date"     : "May 09, 2021",
+      "image"    : "/assets/blogs/2021-05-09/cover.png",
+      "description":"How to use middleware with Azure Functions on .NET 5 and C#"
+    } ,
+  
+    {
+      "title"    : "How to add C# to Azure API Management Policies",
+      "category" : "",
+      "tags"     : "Azure, API, Policies, Azure API Management",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>API</span><span class='search-result-tag'>Policies</span><span class='search-result-tag'>Azure API Management</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/05/02/csharp-policies-apimanagement.html",
+      "date"     : "May 02, 2021",
+      "image"    : "/assets/blogs/2021-05-02/cover.png",
+      "description":"Embedding C# to Azure API management policies"
+    } ,
+  
+    {
+      "title"    : "Azure on a budget, forecasting your spending",
+      "category" : "",
+      "tags"     : "Azure, Cost, Budgets",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>Cost</span><span class='search-result-tag'>Budgets</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html",
+      "date"     : "Apr 25, 2021",
+      "image"    : "/assets/blogs/2021-04-25/cover.png",
+      "description":"Using azure budgets to taking control of your spending"
+    } ,
+  
+    {
+      "title"    : "Security headers with Azure static websites",
+      "category" : "",
+      "tags"     : "Azure, Static Website, Verizon CDN",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>Static Website</span><span class='search-result-tag'>Verizon CDN</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/04/18/security-headers-with-static-sites.html",
+      "date"     : "Apr 18, 2021",
+      "image"    : "/assets/blogs/2021-04-18/cover.png",
+      "description":"Using premium CDN to add headers to your static site hosted on Azure"
+    } ,
+  
+    {
+      "title"    : "How to do multi-trigger Azure Logic Apps",
+      "category" : "",
+      "tags"     : "Azure, Logic Apps",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>Logic Apps</span>",
+      "url"      : "https://www.re-mark-able.net/blogs/2021/04/11/logic-app-multi-trigger.html",
+      "date"     : "Apr 11, 2021",
+      "image"    : "/assets/blogs/2021-04-07/cover.png",
+      "description":"Logic apps normally have 1 trigger, let&#39;s see how we can change this using the Azure portal"
+    } ,
+  
+    {
+      "title"    : "Blazor WebAssembly with Azure Active Directory and Functions",
+      "category" : "",
+      "tags"     : "Blazor, Serverless",
+      "tagsHtml" : "<span class='search-result-tag'>Blazor</span><span class='search-result-tag'>Serverless</span>",
+      "url"      : "https://www.re-mark-able.net/blazor-webassembly-with-azure-active-directory/",
+      "date"     : "Apr 02, 2020",
+      "image"    : "/assets/blogs/2020-04-02/cover.png",
+      "description":"Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers."
+    } ,
+  
+    {
+      "title"    : "Azure AD Application Registration Security with Graph API",
+      "category" : "",
+      "tags"     : "Azure, Active Directory, Graph Api",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>Active Directory</span><span class='search-result-tag'>Graph Api</span>",
+      "url"      : "https://www.re-mark-able.net/azure-ad-application-registration-security/",
+      "date"     : "Oct 04, 2019",
+      "image"    : "/assets/blogs/2019-10-04/cover.jpg",
+      "description":"Retrieving Azure Active Directory Application Registrations by using the Microsoft Graph API SDK in beta channel"
+    } ,
+  
+    {
+      "title"    : "Sending your Threat Indicators to Azure Sentinel",
+      "category" : "",
+      "tags"     : "Windows Defender for Endpoint, MDATP, Sentinel",
+      "tagsHtml" : "<span class='search-result-tag'>Windows Defender for Endpoint</span><span class='search-result-tag'>MDATP</span><span class='search-result-tag'>Sentinel</span>",
+      "url"      : "https://www.re-mark-able.net/adding-threat-indicators-to-sentinel/",
+      "date"     : "Aug 18, 2019",
+      "image"    : "/assets/blogs/2019-08-18/cover.jpg",
+      "description":"How and why should you send your threat indicators to Azure Sentinel or add them manually to the Microsoft Defender Advanced Threat Protection (MDATP) solution? What is an indicator? Why should you care? How can you do this? Let&#39;s go through this."
+    } ,
+  
+    {
+      "title"    : "Understanding Azure Active Directory App Registrations",
+      "category" : "",
+      "tags"     : "Azure, Active Directory",
+      "tagsHtml" : "<span class='search-result-tag'>Azure</span><span class='search-result-tag'>Active Directory</span>",
+      "url"      : "https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations/",
+      "date"     : "Aug 14, 2019",
+      "image"    : "/assets/blogs/2019-08-14/cover.jpg",
+      "description":"Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directories (AAD) there"
+    } ,
+  
+    {
+      "title"    : "Using MDATP Streaming API with Misp",
+      "category" : "",
+      "tags"     : "MDATP, Threat Intelligence, Azure",
+      "tagsHtml" : "<span class='search-result-tag'>MDATP</span><span class='search-result-tag'>Threat Intelligence</span><span class='search-result-tag'>Azure</span>",
+      "url"      : "https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/",
+      "date"     : "Jul 23, 2019",
+      "image"    : "/content/images/2019/07/vanveenjf-6D1WRBQUdh0-unsplash.jpg",
+      "description":"Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let&#39;s dive into the new MDATP Streaming API"
+    } ,
+  
+    {
+      "title"    : "How to access data from the beta channel of Graph API",
+      "category" : "",
+      "tags"     : "Graph API, Azure",
+      "tagsHtml" : "<span class='search-result-tag'>Graph API</span><span class='search-result-tag'>Azure</span>",
+      "url"      : "https://www.re-mark-able.net/how-to-access-data-from-the-beta-channel-of-graph-api/",
+      "date"     : "Jul 08, 2019",
+      "image"    : "/content/images/2019/07/stockvault-mesh-a-network-of-relations-between-entities202555.jpg",
+      "description":"How to register a application in Azure Active Directory and use the beta channel of Graph API in C# without the SDK"
+    } ,
+  
+    {
+      "title"    : "Azure Sentinel: Taking Security To The Next Level",
+      "category" : "",
+      "tags"     : "Azure Sentinel, Security",
+      "tagsHtml" : "<span class='search-result-tag'>Azure Sentinel</span><span class='search-result-tag'>Security</span>",
+      "url"      : "https://www.re-mark-able.net/azure-sentinel-taking-security-to-the-next-level/",
+      "date"     : "May 03, 2019",
+      "image"    : "/content/images/2019/07/philipp-katzenberger-iIJrUoeRoCQ-unsplash.jpg",
+      "description":"Just learned about Azure Sentinel? What is Azure Sentinel? Is it taking as to the next level of security?"
+    } ,
+  
+    {
+      "title"    : "Can a Azure Static Website really be this cheap?",
+      "category" : "",
+      "tags"     : "Azure Static Website, Serverless, Azure",
+      "tagsHtml" : "<span class='search-result-tag'>Azure Static Website</span><span class='search-result-tag'>Serverless</span><span class='search-result-tag'>Azure</span>",
+      "url"      : "https://www.re-mark-able.net/can-a-azure-static-website-really-be-this-cheap/",
+      "date"     : "Mar 09, 2019",
+      "image"    : "/content/images/2019/03/logo-2.png",
+      "description":"Here is why you should consider switching to Azure Static Websites if your requirements allow it. Let&#39;s take a look into what it is and what the costs are"
+    } ,
+  
+    {
+      "title"    : "How to develop more secure solutions without the hassle",
+      "category" : "",
+      "tags"     : "Development, Security",
+      "tagsHtml" : "<span class='search-result-tag'>Development</span><span class='search-result-tag'>Security</span>",
+      "url"      : "https://www.re-mark-able.net/how-to-develop-more-secure-solutions/",
+      "date"     : "Jan 04, 2019",
+      "image"    : "/content/images/2019/01/blog-logo-1.png",
+      "description":"As developers, we are constantly trying to implement our solutions in the best way possible. Often we &#39;forget&#39; to look for the vulnerabilities we introduce without really thinking about it"
+    } 
+  
+]

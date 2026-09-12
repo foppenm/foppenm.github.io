@@ -1,0 +1,36 @@
+# Re[mark]able.net
+
+> A blog by Mark Foppen on .NET, Azure, security, and developer experience for the agentic AI era. Practical, code-driven posts from a freelance full-stack developer and Azure Solutions Architect.
+
+## Author
+
+- Mark Foppen, freelance full-stack developer & Azure Solutions Architect
+- Cre8-it: https://cre8-it.nl
+- GitHub: https://github.com/foppenm
+- LinkedIn: https://www.linkedin.com/in/markfoppen
+
+## Posts
+
+- [Expose your localhost to Claude and ChatGPT with one line: tapinto.dev](https://www.re-mark-able.net/blogs/2026/05/24/tapinto-localhost-tunnels.html): tapinto.dev opens a public HTTPS URL onto your local site or MCP server in a single line from Claude Code or ChatGPT. Great for mobile testing, MCP development, and webhook work.
+- [What is .NET Aspire?](https://www.re-mark-able.net/blogs/2024/04/30/what-is-aspire.html): What is Aspire and why you should use it with your .NET projects? Using aspire to supercharge your local development and enable out-of-the-box OpenTelemetry. Get rid of docker compose for local dev...
+- [How to use middleware with Azure Functions](https://www.re-mark-able.net/blogs/2021/05/09/azure-functions-middleware.html): How to use middleware with Azure Functions on .NET 5 and C#
+- [How to add C# to Azure API Management Policies](https://www.re-mark-able.net/blogs/2021/05/02/csharp-policies-apimanagement.html): Embedding C# to Azure API management policies
+- [Azure on a budget, forecasting your spending](https://www.re-mark-able.net/blogs/2021/04/25/azure-on-a-budget.html): Using azure budgets to taking control of your spending
+- [Security headers with Azure static websites](https://www.re-mark-able.net/blogs/2021/04/18/security-headers-with-static-sites.html): Using premium CDN to add headers to your static site hosted on Azure
+- [How to do multi-trigger Azure Logic Apps](https://www.re-mark-able.net/blogs/2021/04/11/logic-app-multi-trigger.html): Logic apps normally have 1 trigger, let's see how we can change this using the Azure portal
+- [Blazor WebAssembly with Azure Active Directory and Functions](https://www.re-mark-able.net/blazor-webassembly-with-azure-active-directory/): Since the newest Blazor WebAssembly version we have to possibility to use MSAL to authenticate with Azure AD and other OpenID Connect providers.
+- [Azure AD Application Registration Security with Graph API](https://www.re-mark-able.net/azure-ad-application-registration-security/): Retrieving Azure Active Directory Application Registrations by using the Microsoft Graph API SDK in beta channel
+- [Sending your Threat Indicators to Azure Sentinel](https://www.re-mark-able.net/adding-threat-indicators-to-sentinel/): How and why should you send your threat indicators to Azure Sentinel or add them manually to the Microsoft Defender Advanced Threat Protection (MDATP) solution? What is an indicator? Why should you...
+- [Understanding Azure Active Directory App Registrations](https://www.re-mark-able.net/understanding-azure-active-directory-application-registrations/): Why should you care about Azure Active Directory (AAD) Application Registrations as a global administrator or any other role that can approve them in your organization? In many Azure Active Directo...
+- [Using MDATP Streaming API with Misp](https://www.re-mark-able.net/using-mdatp-streaming-api-with-misp/): Would it not be great if you can access all the data from the new Microsoft Defender Advanced Threat Protection? Let's dive into the new MDATP Streaming API
+- [How to access data from the beta channel of Graph API](https://www.re-mark-able.net/how-to-access-data-from-the-beta-channel-of-graph-api/): How to register a application in Azure Active Directory and use the beta channel of Graph API in C# without the SDK
+- [Azure Sentinel: Taking Security To The Next Level](https://www.re-mark-able.net/azure-sentinel-taking-security-to-the-next-level/): Just learned about Azure Sentinel? What is Azure Sentinel? Is it taking as to the next level of security?
+- [Can a Azure Static Website really be this cheap?](https://www.re-mark-able.net/can-a-azure-static-website-really-be-this-cheap/): Here is why you should consider switching to Azure Static Websites if your requirements allow it. Let's take a look into what it is and what the costs are
+- [How to develop more secure solutions without the hassle](https://www.re-mark-able.net/how-to-develop-more-secure-solutions/): As developers, we are constantly trying to implement our solutions in the best way possible. Often we 'forget' to look for the vulnerabilities we introduce without really thinking about it
+
+
+## Products
+
+- GroomSome (https://groomsome.app): SaaS for pet grooming businesses.
+- Hoofdpijndossier (https://www.hoofdpijn-dossier.nl): charity platform for children with chronic headaches.
+- tapinto.dev (https://tapinto.dev): one-line public HTTPS tunnels for local sites and MCP servers, callable from Claude and ChatGPT.
